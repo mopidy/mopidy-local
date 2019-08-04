@@ -1,6 +1,6 @@
 from __future__ import unicode_literals
 
-from mopidy_local import Extension, frontend as frontend_lib
+from mopidy_local import Extension
 
 
 def test_get_default_config():
@@ -17,9 +17,12 @@ def test_get_config_schema():
 
     schema = ext.get_config_schema()
 
-    # TODO Test the content of your config schema
-    #assert "username" in schema
-    #assert "password" in schema
-
-
-# TODO Write more tests
+    assert "library" in schema
+    assert "media_dir" in schema
+    assert "data_dir" in schema
+    assert "playlists_dir" in schema
+    assert "tag_cache_file" in schema
+    assert "scan_timeout" in schema
+    assert "scan_flush_threshold" in schema
+    assert "scan_follow_symlinks" in schema
+    assert "excluded_file_extensions" in schema

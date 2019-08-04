@@ -18,7 +18,8 @@ setup(
     license="Apache License, Version 2.0",
     author="Stein Magnus Jodal",
     author_email="stein.magnus@jodal.no",
-    description="Mopidy extension for playing music from your local music archive",
+    description=(
+        "Mopidy extension for playing music from your local music archive"),
     long_description=open("README.rst").read(),
     packages=find_packages(exclude=["tests", "tests.*"]),
     zip_safe=False,
@@ -26,7 +27,7 @@ setup(
     python_requires="> 2.7, < 3",
     install_requires=[
         "setuptools",
-        "Mopidy >= 2.2",
+        "Mopidy >= 3.0.0a1",
         "Pykka >= 2.0",
     ],
     entry_points={
