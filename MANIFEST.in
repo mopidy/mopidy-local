@@ -1,4 +1,5 @@
 include .travis.yml
+include CHANGELOG.rst
 include LICENSE
 include MANIFEST.in
 include README.rst
@@ -6,3 +7,4 @@ include mopidy_local/ext.conf
 include tox.ini
 
 recursive-include tests *.py
+recursive-include tests/data *
