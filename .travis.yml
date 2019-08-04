@@ -1,0 +1,28 @@
+language: python
+
+python:
+  - "2.7"
+
+virtualenv:
+  system_site_packages: true
+
+addons:
+  apt:
+    sources:
+      - mopidy-stable
+    packages:
+      - mopidy
+
+env:
+  - TOX_ENV=py27
+  - TOX_ENV=flake8
+  - TOX_ENV=check-manifest
+
+install:
+  - pip install tox
+
+script:
+  - tox -e $TOX_ENV
+
+after_success:
+  - if [ $TOX_ENV == 'py27' ]; then pip install coveralls; coveralls; fi
