@@ -17,6 +17,27 @@ Mopidy-Local
 Mopidy extension for playing music from your local music archive
 
 
+Maintainer wanted
+=================
+
+Mopidy-Local is currently kept on life support by the Mopidy core
+developers. It is in need of a more dedicated maintainer.
+
+If you want to be the maintainer of Mopidy-Local, please:
+
+1. Make 2-3 good pull requests improving any part of the project.
+
+2. Read and get familiar with all of the project's open issues.
+
+3. Send a pull request removing this section and adding yourself as the
+   "Current maintainer" in the "Credits" section below. In the pull request
+   description, please refer to the previous pull requests and state that
+   you've familiarized yourself with the open issues.
+
+   As a maintainer, you'll be given push access to the repo and the authority to
+   make releases to PyPI when you see fit.
+
+
 Installation
 ============
 
@@ -49,6 +70,9 @@ Project resources
 Credits
 =======
 
-- Original author: `Stein Magnus Jodal <https://github.com/mopidy`__
-- Current maintainer: `Stein Magnus Jodal <https://github.com/mopidy`__
+- Original authors:
+  `Stein Magnus Jodal <https://github.com/jodal>`__ and
+  `Thomas Adamcik <https://github.com/adamcik>`__ for the Mopidy-Local extension in Mopidy core.
+  `Thomas Kemmer <https://github.com/tkem>`__ for the SQLite storage and support for embedded album art.
+- Current maintainer: None. Maintainer wanted, see section above.
 - `Contributors <https://github.com/mopidy/mopidy-local/graphs/contributors>`_
