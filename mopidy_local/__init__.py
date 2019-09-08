@@ -34,6 +34,10 @@ class Extension(ext.Extension):
         schema['scan_flush_threshold'] = config.Integer(minimum=0)
         schema['scan_follow_symlinks'] = config.Boolean()
         schema['excluded_file_extensions'] = config.List(optional=True)
+        # from mopidy-local-images
+        schema['base_uri'] = config.String(optional=True)
+        schema['image_dir'] = config.String(optional=True)
+        schema['album_art_files'] = config.List(optional=True)
         return schema
 
     def setup(self, registry):
@@ -45,9 +49,34 @@ class Extension(ext.Extension):
         registry.add('backend', LocalBackend)
         registry.add('local:library', JsonLibrary)
 
+        # from mopidy-local-images
+        from .images import ImageLibrary
+        ImageLibrary.libraries = registry['local:library']
+        registry.add('local:library', ImageLibrary)
+        registry.add('http:app', {'name': 'images', 'factory': self.webapp})
+
     def get_command(self):
         from .commands import LocalCommand
         return LocalCommand()
+
+    # from mopidy-local-images
+    def webapp(self, config, core):
+        from .web import ImageHandler, IndexHandler
+        if config[self.ext_name]['image_dir']:
+            image_dir = config[self.ext_name]['image_dir']
+        else:
+            image_dir = self.get_data_dir(config)
+        return [
+            (r'/(index.html)?', IndexHandler, {'root': image_dir}),
+            (r'/(.+)', ImageHandler, {'path': image_dir})
+        ]
+
+    # from mopidy-local-images
+    @classmethod
+    def get_or_create_data_dir(cls, config):
+        data_dir = cls().get_data_dir(config)
+        # migrate_old_data_dir(config, data_dir)
+        return data_dir
 
 
 class Library(object):

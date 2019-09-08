@@ -19,7 +19,8 @@ MIN_DURATION_MS = 100  # Shortest length of track to include.
 
 def _get_library(args, config):
     libraries = {l.name: l for l in args.registry['local:library']}
-    library_name = config['local']['library']
+    # library_name = config['local']['library']
+    library_name = 'images'
 
     if library_name not in libraries:
         logger.error('Local library %s not found', library_name)

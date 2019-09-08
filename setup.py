@@ -29,6 +29,7 @@ setup(
         "setuptools",
         "Mopidy >= 3.0.0a1",
         "Pykka >= 2.0",
+        "uritools >= 1.0"
     ],
     entry_points={
         "mopidy.ext": [
