@@ -13,9 +13,8 @@ import uritools
 
 from mopidy.audio import scan
 from mopidy.exceptions import ExtensionError
-from mopidy.local import translator
 
-from . import Extension, Library
+from . import Extension, Library, translator
 
 logger = logging.getLogger(__name__)
 

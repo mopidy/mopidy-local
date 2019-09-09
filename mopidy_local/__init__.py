@@ -38,6 +38,12 @@ class Extension(ext.Extension):
         schema['base_uri'] = config.String(optional=True)
         schema['image_dir'] = config.String(optional=True)
         schema['album_art_files'] = config.List(optional=True)
+        # from mopidy-local-sqlite
+        schema['directories'] = config.List()
+        schema['timeout'] = config.Integer(optional=True, minimum=1)
+        schema['use_album_mbid_uri'] = config.Boolean()
+        schema['use_artist_mbid_uri'] = config.Boolean()
+        schema['use_artist_sortname'] = config.Boolean()
         return schema
 
     def setup(self, registry):
@@ -54,6 +60,10 @@ class Extension(ext.Extension):
         ImageLibrary.libraries = registry['local:library']
         registry.add('local:library', ImageLibrary)
         registry.add('http:app', {'name': 'images', 'factory': self.webapp})
+
+        # from mopidy-local-sqlite
+        from .sqlite import SQLiteLibrary
+        registry.add('local:library', SQLiteLibrary)
 
     def get_command(self):
         from .commands import LocalCommand
