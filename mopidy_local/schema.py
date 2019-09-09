@@ -4,9 +4,23 @@ import itertools
 import logging
 import operator
 import os
+import re
 import sqlite3
 
-from mopidy.models import Album, Artist, Ref, Track
+from mopidy.models import Album, Artist, Image, Ref, Track
+
+_IMAGE_SIZE_RE = re.compile(r'.*-(\d+)x(\d+)\.(?:png|gif|jpeg)$')
+
+_IMAGES_QUERY = 'SELECT images FROM album WHERE images IS NOT NULL'
+
+_ALBUM_IMAGE_QUERY = 'SELECT images FROM album WHERE uri = ?'
+
+_TRACK_IMAGE_QUERY = """
+SELECT album.images AS images
+  FROM track
+  LEFT OUTER JOIN album ON track.album = album.uri
+ WHERE track.uri = ?
+"""
 
 _BROWSE_QUERIES = {
     None: """
@@ -262,6 +276,25 @@ def search_tracks(c, query, limit, offset, exact, filters=[]):
     return map(_track, rows)
 
 
+def get_image_uris(c):
+    rows = c.execute(_IMAGES_QUERY)
+    return (uri for row in rows for uri in row.images.split())
+
+
+def get_album_images(c, uri):
+    images = []
+    for row in c.execute(_ALBUM_IMAGE_QUERY, (uri,)):
+        images.extend(_images(row.images))
+    return images
+
+
+def get_track_images(c, uri):
+    images = []
+    for row in c.execute(_TRACK_IMAGE_QUERY, (uri,)):
+        images.extend(_images(row.images))
+    return images
+
+
 def insert_artists(c, artists):
     if not artists:
         return None
@@ -437,9 +470,7 @@ def _track(row):
             num_tracks=row.album_num_tracks,
             num_discs=row.album_num_discs,
             date=row.album_date,
-            musicbrainz_id=row.album_musicbrainz_id,
-            # FIXME: no more Album.images
-            # images=row.album_images.split() if row.album_images else None
+            musicbrainz_id=row.album_musicbrainz_id
         )
     if row.artist_uri is not None:
         kwargs['artists'] = [Artist(
@@ -463,3 +494,16 @@ def _track(row):
             musicbrainz_id=row.performer_musicbrainz_id
         )]
     return Track(**kwargs)
+
+
+def _images(field):
+    images = []
+    for uri in field.split() if field else []:
+        m = _IMAGE_SIZE_RE.match(uri)
+        if m:
+            width = int(m.group(1))
+            height = int(m.group(2))
+            images.append(Image(uri=uri, width=width, height=height))
+        else:
+            images.append(Image(uri=uri))
+    return images
