@@ -9,7 +9,7 @@ from mopidy import commands, compat, exceptions
 from mopidy.audio import scan, tags
 from mopidy.internal import path
 
-from mopidy_local import translator
+from mopidy_local import storage, translator
 
 
 logger = logging.getLogger(__name__)
@@ -18,15 +18,7 @@ MIN_DURATION_MS = 100  # Shortest length of track to include.
 
 
 def _get_library(args, config):
-    libraries = {l.name: l for l in args.registry['local:library']}
-    library_name = config['local']['library']
-
-    if library_name not in libraries:
-        logger.error('Local library %s not found', library_name)
-        return None
-
-    logger.debug('Using %s as the local library', library_name)
-    return libraries[library_name](config)
+    return storage.LocalStorageProvider(config)
 
 
 class LocalCommand(commands.Command):
