@@ -48,13 +48,11 @@ class Extension(ext.Extension):
 
     def setup(self, registry):
         from .actor import LocalBackend
-        from .json import JsonLibrary
         from .sqlite import SQLiteLibrary
 
         LocalBackend.libraries = registry['local:library']
 
         registry.add('backend', LocalBackend)
-        registry.add('local:library', JsonLibrary)
         registry.add('local:library', SQLiteLibrary)
 
         registry.add('http:app', {'name': 'images', 'factory': self.webapp})
