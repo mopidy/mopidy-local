@@ -77,7 +77,7 @@ class ImageLibrary(Library):
         if ext_config['image_dir']:
             self.image_dir = ext_config['image_dir']
         else:
-            self.image_dir = Extension.get_or_create_data_dir(config)
+            self.image_dir = Extension.get_data_subdir(config, b'images')
         self.patterns = list(map(str, ext_config['album_art_files']))
         self.scanner = scan.Scanner(config['local']['scan_timeout'])
 

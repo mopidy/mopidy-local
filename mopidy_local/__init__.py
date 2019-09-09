@@ -65,18 +65,20 @@ class Extension(ext.Extension):
         if config[self.ext_name]['image_dir']:
             image_dir = config[self.ext_name]['image_dir']
         else:
-            image_dir = self.get_data_dir(config)
+            image_dir = self.get_data_subdir(config, b'images')
         return [
             (r'/(index.html)?', IndexHandler, {'root': image_dir}),
             (r'/(.+)', ImageHandler, {'path': image_dir})
         ]
 
-    # from mopidy-local-images
+    # TODO: Extension.get_data_dir() with optional sub-path(s)?
     @classmethod
-    def get_or_create_data_dir(cls, config):
-        data_dir = cls().get_data_dir(config)
-        # migrate_old_data_dir(config, data_dir)
-        return data_dir
+    def get_data_subdir(cls, config, *paths):
+        from mopidy.internal import path
+        data_dir = cls.get_data_dir(config)
+        dir_path = os.path.join(data_dir, *paths)
+        path.get_or_create_dir(dir_path)
+        return dir_path
 
 
 class Library(object):
