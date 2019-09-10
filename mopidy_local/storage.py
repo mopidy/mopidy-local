@@ -214,7 +214,8 @@ class LocalStorageProvider(object):
                 logger.warn('Error extracting images for %r: %r', uri, e)
         # look for external album art
         path = translator.local_uri_to_path(uri, self.media_dir)
-        dirname = os.path.dirname(path)
+        # replace brackets with character classes for use with glob
+        dirname = os.path.dirname(path).replace(b'[', b'[[]')
         for pattern in self.patterns:
             for path in glob.glob(os.path.join(dirname, pattern)):
                 try:
