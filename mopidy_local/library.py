@@ -10,7 +10,6 @@ import sqlite3
 import uritools
 
 from mopidy import backend, models
-from mopidy.exceptions import ExtensionError
 from mopidy.models import Ref, SearchResult
 
 from . import Extension, schema
@@ -18,14 +17,14 @@ from . import Extension, schema
 logger = logging.getLogger(__name__)
 
 
-def _dateref(date):
+def dateref(date):
     return Ref.directory(
         uri=uritools.uricompose('local', None, 'directory', {'date': date}),
         name=date
     )
 
 
-def _genreref(genre):
+def genreref(genre):
     return Ref.directory(
         uri=uritools.uricompose('local', None, 'directory', {'genre': genre}),
         name=genre
@@ -43,10 +42,6 @@ class LocalLibraryProvider(backend.LibraryProvider):
         super(LocalLibraryProvider, self).__init__(backend)
         self._config = ext_config = config[Extension.ext_name]
         self._data_dir = Extension.get_data_dir(config)
-        try:
-            self.media_dir = config['local']['media_dir']
-        except KeyError:
-            raise ExtensionError('Mopidy-Local not enabled')
         self._directories = []
         for line in ext_config['directories']:
             name, uri = line.rsplit(None, 1)
@@ -54,13 +49,6 @@ class LocalLibraryProvider(backend.LibraryProvider):
             self._directories.append(ref)
         self._dbpath = os.path.join(self._data_dir, b'library.db')
         self._connection = None
-        # images
-        self.base_uri = ext_config['base_uri']
-        if ext_config['image_dir']:
-            self.image_dir = ext_config['image_dir']
-        else:
-            self.image_dir = Extension.get_data_subdir(config, b'images')
-        self.patterns = list(map(str, ext_config['album_art_files']))
 
     def load(self):
         with self._connect() as connection:
@@ -69,14 +57,17 @@ class LocalLibraryProvider(backend.LibraryProvider):
             return schema.count_tracks(connection)
 
     def lookup(self, uri):
-        if uri.startswith('local:album'):
-            return list(schema.lookup(self._connect(), Ref.ALBUM, uri))
-        elif uri.startswith('local:artist'):
-            return list(schema.lookup(self._connect(), Ref.ARTIST, uri))
-        elif uri.startswith('local:track'):
-            return list(schema.lookup(self._connect(), Ref.TRACK, uri))
-        else:
-            logger.error('Invalid lookup URI %s', uri)
+        try:
+            if uri.startswith('local:album'):
+                return list(schema.lookup(self._connect(), Ref.ALBUM, uri))
+            elif uri.startswith('local:artist'):
+                return list(schema.lookup(self._connect(), Ref.ARTIST, uri))
+            elif uri.startswith('local:track'):
+                return list(schema.lookup(self._connect(), Ref.TRACK, uri))
+            else:
+                raise ValueError('Invalid lookup URI')
+        except Exception as e:
+            logger.error('Lookup error for %s: %s', uri, e)
             return []
 
     def browse(self, uri):
@@ -162,9 +153,9 @@ class LocalLibraryProvider(backend.LibraryProvider):
         # TODO: handle these in schema (generically)?
         if type == 'date':
             format = query.get('format', '%Y-%m-%d')
-            return map(_dateref, schema.dates(self._connect(), format=format))
+            return map(dateref, schema.dates(self._connect(), format=format))
         if type == 'genre':
-            return map(_genreref, schema.list_distinct(self._connect(), 'genre'))  # noqa
+            return map(genreref, schema.list_distinct(self._connect(), 'genre'))  # noqa
 
         # Fix #38: keep sort order of album tracks; this also applies
         # to composers and performers

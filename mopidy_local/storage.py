@@ -12,9 +12,6 @@ import sys
 
 import uritools
 
-from mopidy.exceptions import ExtensionError
-from mopidy.models import Ref
-
 from . import Extension, schema, translator
 
 logger = logging.getLogger(__name__)
@@ -34,6 +31,18 @@ def get_image_size_png(data):
 
 def get_image_size_gif(data):
     return struct.unpack(str('<HH'), data[6:10])
+
+
+def model_uri(type, model):
+    # only use valid mbids; TODO: use regex for that?
+    if model.musicbrainz_id and len(model.musicbrainz_id) == 36:
+        return 'local:%s:mbid:%s' % (type, model.musicbrainz_id)
+    elif type == 'album':
+        # ignore num_tracks for multi-disc albums
+        digest = hashlib.md5(str(model.replace(num_tracks=None)))
+    else:
+        digest = hashlib.md5(str(model))
+    return 'local:%s:md5:%s' % (type, digest.hexdigest())
 
 
 def get_image_size_jpeg(data):
@@ -57,29 +66,15 @@ def get_image_size_jpeg(data):
 
 class LocalStorageProvider(object):
 
-    add_supports_tags_and_duration = True
-
     def __init__(self, config):
         self._config = ext_config = config[Extension.ext_name]
+        self._media_dir = ext_config['media_dir']
         self._data_dir = Extension.get_data_dir(config)
-        try:
-            self.media_dir = config['local']['media_dir']
-        except KeyError:
-            raise ExtensionError('Mopidy-Local not enabled')
-        self._directories = []
-        for line in ext_config['directories']:
-            name, uri = line.rsplit(None, 1)
-            ref = Ref.directory(uri=uri, name=name)
-            self._directories.append(ref)
+        self._image_dir = Extension.get_image_dir(config)
+        self._base_uri = '/' + Extension.ext_name + '/'
+        self._patterns = list(map(str, ext_config['album_art_files']))
         self._dbpath = os.path.join(self._data_dir, b'library.db')
         self._connection = None
-        # images
-        self.base_uri = ext_config['base_uri']
-        if ext_config['image_dir']:
-            self.image_dir = ext_config['image_dir']
-        else:
-            self.image_dir = Extension.get_data_subdir(config, b'images')
-        self.patterns = list(map(str, ext_config['album_art_files']))
 
     def load(self):
         with self._connect() as connection:
@@ -94,7 +89,7 @@ class LocalStorageProvider(object):
         logger.info('Adding track: %s', track)
         images = None
         if track.album and track.album.name:  # FIXME: album required
-            uri = translator.local_uri_to_file_uri(track.uri, self.media_dir)
+            uri = translator.local_uri_to_file_uri(track.uri, self._media_dir)
             try:
                 images = self._extract_images(track.uri, tags)
                 logger.debug('%s images: %s', track.uri, images)
@@ -128,7 +123,7 @@ class LocalStorageProvider(object):
     def clear(self):
         logger.info('Clearing image directory')
         try:
-            for root, dirs, files in os.walk(self.image_dir, topdown=False):
+            for root, dirs, files in os.walk(self._image_dir, topdown=False):
                 for name in dirs:
                     os.rmdir(os.path.join(root, name))
                 for name in files:
@@ -153,52 +148,47 @@ class LocalStorageProvider(object):
             )
         return self._connection
 
-    def _validate_artist(self, artist):
-        if not artist.name:
+    def _validate_artist(self, model):
+        if not model.name:
             raise ValueError('Empty artist name')
-        uri = artist.uri or self._model_uri('artist', artist)
-        return artist.replace(uri=uri)
+        if not model.uri:
+            model = model.replace(uri=model_uri('artist', model))
+        return model
 
-    def _validate_album(self, album):
-        if not album.name:
+    def _validate_album(self, model):
+        if not model.name:
             raise ValueError('Empty album name')
-        uri = album.uri or self._model_uri('album', album)
-        artists = map(self._validate_artist, album.artists)
-        return album.replace(uri=uri, artists=artists)
+        if not model.uri:
+            model = model.replace(uri=model_uri('album', model))
+        return model.replace(artists=map(self._validate_artist, model.artists))
 
-    def _validate_track(self, track, encoding=sys.getfilesystemencoding()):
-        if not track.uri:
+    def _validate_track(self, model, encoding=sys.getfilesystemencoding()):
+        if not model.uri:
             raise ValueError('Empty track URI')
-        if track.name:
-            name = track.name
+        if model.name:
+            name = model.name
         else:
-            path = translator.local_track_uri_to_path(track.uri, b'')
+            path = translator.local_track_uri_to_path(model.uri, b'')
             name = os.path.basename(path).decode(encoding, errors='replace')
-        if track.album and track.album.name:
-            album = self._validate_album(track.album)
+        if model.album and model.album.name:
+            album = self._validate_album(model.album)
         else:
             album = None
-        return track.replace(
+        return model.replace(
             name=name,
             album=album,
-            artists=map(self._validate_artist, track.artists),
-            composers=map(self._validate_artist, track.composers),
-            performers=map(self._validate_artist, track.performers)
+            artists=map(self._validate_artist, model.artists),
+            composers=map(self._validate_artist, model.composers),
+            performers=map(self._validate_artist, model.performers)
         )
-
-    def _model_uri(self, type, model):
-        if model.musicbrainz_id and self._config['use_%s_mbid_uri' % type]:
-            return 'local:%s:mbid:%s' % (type, model.musicbrainz_id)
-        digest = hashlib.md5(str(model)).hexdigest()
-        return 'local:%s:md5:%s' % (type, digest)
 
     def _cleanup_images(self):
         logger.info('Cleaning up image directory')
         with self._connect() as c:
             uris = set(schema.get_image_uris(c))
-        for root, _, files in os.walk(self.image_dir):
+        for root, _, files in os.walk(self._image_dir):
             for name in files:
-                if uritools.urijoin(self.base_uri, name) not in uris:
+                if uritools.urijoin(self._base_uri, name) not in uris:
                     path = os.path.join(root, name)
                     logger.info('Deleting file %s', path)
                     os.remove(path)
@@ -213,10 +203,10 @@ class LocalStorageProvider(object):
             except Exception as e:
                 logger.warn('Error extracting images for %r: %r', uri, e)
         # look for external album art
-        path = translator.local_uri_to_path(uri, self.media_dir)
+        path = translator.local_uri_to_path(uri, self._media_dir)
         # replace brackets with character classes for use with glob
         dirname = os.path.dirname(path).replace(b'[', b'[[]')
-        for pattern in self.patterns:
+        for pattern in self._patterns:
             for path in glob.glob(os.path.join(dirname, pattern)):
                 try:
                     images.add(self._get_or_create_image_file(path))
@@ -244,9 +234,9 @@ class LocalStorageProvider(object):
             name = '%s-%dx%d.%s' % (digest, width, height, what)
         else:
             name = '%s.%s' % (digest, what)
-        dest = os.path.join(self.image_dir, name)
+        dest = os.path.join(self._image_dir, name)
         if not os.path.isfile(dest):
             logger.info('Creating file %s', dest)
             with open(dest, 'wb') as fh:
                 fh.write(data)
-        return uritools.urijoin(self.base_uri, name)
+        return uritools.urijoin(self._base_uri, name)

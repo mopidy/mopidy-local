@@ -34,41 +34,33 @@ class Extension(ext.Extension):
         schema['scan_flush_threshold'] = config.Integer(minimum=0)
         schema['scan_follow_symlinks'] = config.Boolean()
         schema['excluded_file_extensions'] = config.List(optional=True)
-        # from mopidy-local-images
-        schema['base_uri'] = config.String(optional=True)
-        schema['image_dir'] = config.String(optional=True)
-        schema['album_art_files'] = config.List(optional=True)
-        # from mopidy-local-sqlite
         schema['directories'] = config.List()
         schema['timeout'] = config.Integer(optional=True, minimum=1)
-        schema['use_album_mbid_uri'] = config.Boolean()
-        schema['use_artist_mbid_uri'] = config.Boolean()
         schema['use_artist_sortname'] = config.Boolean()
+        schema['album_art_files'] = config.List(optional=True)
         return schema
 
     def setup(self, registry):
         from .actor import LocalBackend
-        LocalBackend.libraries = registry['local:library']
         registry.add('backend', LocalBackend)
-        registry.add('http:app', {'name': 'images', 'factory': self.webapp})
+        registry.add('http:app', {
+            'name': self.ext_name,
+            'factory': self.webapp
+        })
 
     def get_command(self):
         from .commands import LocalCommand
         return LocalCommand()
 
-    # from mopidy-local-images
     def webapp(self, config, core):
         from .web import ImageHandler, IndexHandler
-        if config[self.ext_name]['image_dir']:
-            image_dir = config[self.ext_name]['image_dir']
-        else:
-            image_dir = self.get_data_subdir(config, b'images')
+        image_dir = self.get_image_dir(config)
         return [
             (r'/(index.html)?', IndexHandler, {'root': image_dir}),
             (r'/(.+)', ImageHandler, {'path': image_dir})
         ]
 
-    # TODO: Extension.get_data_dir() with optional sub-path(s)?
+    # TODO: Add *paths to Extension.get_data_dir()?
     @classmethod
     def get_data_subdir(cls, config, *paths):
         from mopidy.internal import path
@@ -76,3 +68,7 @@ class Extension(ext.Extension):
         dir_path = os.path.join(data_dir, *paths)
         path.get_or_create_dir(dir_path)
         return dir_path
+
+    @classmethod
+    def get_image_dir(cls, config):
+        return cls.get_data_subdir(config, b'images')

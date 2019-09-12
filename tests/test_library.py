@@ -21,14 +21,10 @@ class LocalLibraryProviderTest(unittest.TestCase):
         },
         'local': {
             'media_dir': path_to_data_dir(''),
-            'base_uri': '/images/',
-            'image_dir': None,
-            'album_art_files': [],
             'directories': [],
             'timeout': 10,
-            'use_album_mbid_uri': True,
-            'use_artist_mbid_uri': False,
-            'use_artist_sortname': False
+            'use_artist_sortname': False,
+            'album_art_files': [],
         }
     }
 

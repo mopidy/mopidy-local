@@ -142,11 +142,7 @@ class ScanCommand(commands.Command):
                     mtime = file_mtimes.get(os.path.join(media_dir, relpath))
                     track = tags.convert_tags_to_track(result.tags).replace(
                         uri=uri, length=result.duration, last_modified=mtime)
-                    if library.add_supports_tags_and_duration:
-                        library.add(
-                            track, tags=result.tags, duration=result.duration)
-                    else:
-                        library.add(track)
+                    library.add(track, result.tags, result.duration)
                     logger.debug('Added %s', track.uri)
             except exceptions.ScannerError as error:
                 logger.warning('Failed %s: %s', uri, error)
