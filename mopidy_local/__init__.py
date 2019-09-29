@@ -2,9 +2,8 @@ from __future__ import absolute_import, unicode_literals
 
 import logging
 import os
-import posixpath
 
-from mopidy import config, ext
+from mopidy import config, ext, posix_normpath
 
 
 __version__ = "3.0.0a1"
@@ -20,7 +19,7 @@ class Extension(ext.Extension):
     version = __version__
 
     def get_default_config(self):
-        conf_file = os.path.join(os.path.dirname(__file__), 'ext.conf')
+        conf_file = posix_normpath(os.path.dirname(__file__), 'ext.conf')
         return config.read(conf_file)
 
     def get_config_schema(self):
