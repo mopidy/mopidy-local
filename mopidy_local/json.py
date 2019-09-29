@@ -3,6 +3,7 @@ from __future__ import absolute_import, absolute_import, unicode_literals
 import collections
 import logging
 import os
+import posixpath
 import re
 import sys
 
@@ -76,7 +77,7 @@ class JsonLibrary(Library):
         self._tracks = {}
         self._browse_cache = None
         self._media_dir = config['local']['media_dir']
-        self._json_file = os.path.join(
+        self._json_file = posixpath.join(
             Extension.get_data_dir(config), b'library.json.gz')
 
         storage.check_dirs_and_files(config)
