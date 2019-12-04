@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 
 class LocalBackend(pykka.ThreadingActor, backend.Backend):
-    uri_schemes = ['local']
+    uri_schemes = ["local"]
 
     def __init__(self, config, audio):
         super().__init__()

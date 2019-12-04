@@ -11,8 +11,7 @@ import pykka
 
 from mopidy_local import actor
 
-from tests import (
-    dummy_audio, generate_song, path_to_data_dir, populate_tracklist)
+from tests import dummy_audio, generate_song, path_to_data_dir, populate_tracklist
 
 
 # TODO Test 'playlist repeat', e.g. repeat=1,single=0
@@ -20,24 +19,20 @@ from tests import (
 
 class LocalPlaybackProviderTest(unittest.TestCase):
     config = {
-        'core': {
-            'data_dir': path_to_data_dir(''),
-            'max_tracklist_length': 10000,
+        "core": {"data_dir": path_to_data_dir(""), "max_tracklist_length": 10000,},
+        "local": {
+            "media_dir": path_to_data_dir(""),
+            "directories": [],
+            "timeout": 10,
+            "use_artist_sortname": False,
+            "album_art_files": [],
         },
-        'local': {
-            'media_dir': path_to_data_dir(''),
-            'directories': [],
-            'timeout': 10,
-            'use_artist_sortname': False,
-            'album_art_files': [],
-        }
     }
 
     # We need four tracks so that our shuffled track tests behave nicely with
     # reversed as a fake shuffle. Ensuring that shuffled order is [4,3,2,1] and
     # normal order [1,2,3,4] which means next_track != next_track_with_random
-    tracks = [
-        Track(uri=generate_song(i), length=4464) for i in (1, 2, 3, 4)]
+    tracks = [Track(uri=generate_song(i), length=4464) for i in (1, 2, 3, 4)]
 
     def add_track(self, uri):
         track = Track(uri=uri, length=4464)
@@ -53,17 +48,18 @@ class LocalPlaybackProviderTest(unittest.TestCase):
     def setUp(self):  # noqa: N802
         self.audio = dummy_audio.create_proxy()
         self.backend = actor.LocalBackend.start(
-            config=self.config, audio=self.audio).proxy()
-        self.core = core.Core.start(audio=self.audio,
-                                    backends=[self.backend],
-                                    config=self.config).proxy()
+            config=self.config, audio=self.audio
+        ).proxy()
+        self.core = core.Core.start(
+            audio=self.audio, backends=[self.backend], config=self.config
+        ).proxy()
         self.playback = self.core.playback
         self.tracklist = self.core.tracklist
 
-        assert len(self.tracks) >= 3, \
-            'Need at least three tracks to run tests.'
-        assert self.tracks[0].length >= 2000, \
-            'First song needs to be at least 2000 miliseconds'
+        assert len(self.tracks) >= 3, "Need at least three tracks to run tests."
+        assert (
+            self.tracks[0].length >= 2000
+        ), "First song needs to be at least 2000 miliseconds"
 
     def tearDown(self):  # noqa: N802
         pykka.ActorRegistry.stop_all()
@@ -83,11 +79,13 @@ class LocalPlaybackProviderTest(unittest.TestCase):
 
     def assert_next_tl_track_is(self, tl_track):
         self.assertEqual(
-            self.tracklist.get_next_tlid().get(), tl_track and tl_track.tlid)
+            self.tracklist.get_next_tlid().get(), tl_track and tl_track.tlid
+        )
 
     def assert_next_tl_track_is_not(self, tl_track):
         self.assertNotEqual(
-            self.tracklist.get_next_tlid().get(), tl_track and tl_track.tlid)
+            self.tracklist.get_next_tlid().get(), tl_track and tl_track.tlid
+        )
 
     def assert_previous_tl_track_is(self, tl_track):
         current = self.playback.get_current_tl_track().get()
@@ -103,21 +101,21 @@ class LocalPlaybackProviderTest(unittest.TestCase):
         self.assertNotEqual(self.tracklist.eot_track(current).get(), tl_track)
 
     def test_uri_scheme(self):
-        self.assertNotIn('file', self.core.get_uri_schemes().get())
-        self.assertIn('local', self.core.get_uri_schemes().get())
+        self.assertNotIn("file", self.core.get_uri_schemes().get())
+        self.assertIn("local", self.core.get_uri_schemes().get())
 
     def test_play_mp3(self):
-        self.add_track('local:track:blank.mp3')
+        self.add_track("local:track:blank.mp3")
         self.playback.play().get()
         self.assert_state_is(PlaybackState.PLAYING)
 
     def test_play_ogg(self):
-        self.add_track('local:track:blank.ogg')
+        self.add_track("local:track:blank.ogg")
         self.playback.play().get()
         self.assert_state_is(PlaybackState.PLAYING)
 
     def test_play_flac(self):
-        self.add_track('local:track:blank.flac')
+        self.add_track("local:track:blank.flac")
         self.playback.play().get()
         self.assert_state_is(PlaybackState.PLAYING)
 
@@ -125,7 +123,7 @@ class LocalPlaybackProviderTest(unittest.TestCase):
         # Regression test: If trying to do .split(u':') on a bytestring, the
         # string will be decoded from ASCII to Unicode, which will crash on
         # non-ASCII strings, like the bytestring the following URI decodes to.
-        self.add_track('local:track:12%20Doin%E2%80%99%20It%20Right.flac')
+        self.add_track("local:track:12%20Doin%E2%80%99%20It%20Right.flac")
         self.playback.play().get()
         self.assert_state_is(PlaybackState.PLAYING)
 
@@ -372,7 +370,7 @@ class LocalPlaybackProviderTest(unittest.TestCase):
         self.assert_next_tl_track_is(self.tl_tracks.get()[0])
 
     @populate_tracklist
-    @mock.patch('random.shuffle')
+    @mock.patch("random.shuffle")
     def test_next_track_with_random(self, shuffle_mock):
         shuffle_mock.side_effect = lambda tracks: tracks.reverse()
 
@@ -396,7 +394,7 @@ class LocalPlaybackProviderTest(unittest.TestCase):
         self.assert_current_track_is(self.tracks[1])
 
     @populate_tracklist
-    @mock.patch('random.shuffle')
+    @mock.patch("random.shuffle")
     def test_next_with_random(self, shuffle_mock):
         shuffle_mock.side_effect = lambda tracks: tracks.reverse()
 
@@ -407,7 +405,7 @@ class LocalPlaybackProviderTest(unittest.TestCase):
         self.assert_current_track_is(self.tracks[-2])
 
     @populate_tracklist
-    @mock.patch('random.shuffle')
+    @mock.patch("random.shuffle")
     def test_next_track_with_random_after_append_playlist(self, shuffle_mock):
         shuffle_mock.side_effect = lambda tracks: tracks.reverse()
 
@@ -535,7 +533,7 @@ class LocalPlaybackProviderTest(unittest.TestCase):
         self.assert_next_tl_track_is(self.tl_tracks.get()[0])
 
     @populate_tracklist
-    @mock.patch('random.shuffle')
+    @mock.patch("random.shuffle")
     def test_end_of_track_track_with_random(self, shuffle_mock):
         shuffle_mock.side_effect = lambda tracks: tracks.reverse()
 
@@ -550,7 +548,7 @@ class LocalPlaybackProviderTest(unittest.TestCase):
         self.assertNotIn(self.tracks[0], self.tracklist.get_tracks().get())
 
     @populate_tracklist
-    @mock.patch('random.shuffle')
+    @mock.patch("random.shuffle")
     def test_end_of_track_with_random(self, shuffle_mock):
         shuffle_mock.side_effect = lambda tracks: tracks.reverse()
 
@@ -561,9 +559,8 @@ class LocalPlaybackProviderTest(unittest.TestCase):
         self.assert_current_track_is(self.tracks[-2])
 
     @populate_tracklist
-    @mock.patch('random.shuffle')
-    def test_end_of_track_track_with_random_after_append_playlist(
-            self, shuffle_mock):
+    @mock.patch("random.shuffle")
+    def test_end_of_track_track_with_random_after_append_playlist(self, shuffle_mock):
         shuffle_mock.side_effect = lambda tracks: tracks.reverse()
 
         self.tracklist.set_random(True)
@@ -665,7 +662,7 @@ class LocalPlaybackProviderTest(unittest.TestCase):
         # EOS should have triggered
         self.assert_current_track_index_is(None)
 
-    @mock.patch('mopidy.core.playback.PlaybackController._on_tracklist_change')
+    @mock.patch("mopidy.core.playback.PlaybackController._on_tracklist_change")
     def test_on_tracklist_change_gets_called(self, change_mock):
         self.tracklist.add([Track()]).get()
         change_mock.assert_called_once_with()
@@ -752,7 +749,7 @@ class LocalPlaybackProviderTest(unittest.TestCase):
     @populate_tracklist
     def test_seek_when_stopped(self):
         result = self.playback.seek(1000)
-        self.assert_(result, 'Seek return value was %s' % result)
+        self.assert_(result, "Seek return value was %s" % result)
 
     @populate_tracklist
     def test_seek_when_stopped_updates_position(self):
@@ -776,7 +773,7 @@ class LocalPlaybackProviderTest(unittest.TestCase):
     def test_seek_when_playing(self):
         self.playback.play().get()
         result = self.playback.seek(self.tracks[0].length - 1000)
-        self.assert_(result, 'Seek return value was %s' % result)
+        self.assert_(result, "Seek return value was %s" % result)
 
     @populate_tracklist
     def test_seek_when_playing_updates_position(self):
@@ -791,7 +788,7 @@ class LocalPlaybackProviderTest(unittest.TestCase):
         self.playback.play().get()
         self.playback.pause()
         result = self.playback.seek(self.tracks[0].length - 1000)
-        self.assert_(result, 'Seek return value was %s' % result)
+        self.assert_(result, "Seek return value was %s" % result)
         self.assert_state_is(PlaybackState.PAUSED)
 
     @populate_tracklist
@@ -809,7 +806,7 @@ class LocalPlaybackProviderTest(unittest.TestCase):
         # FIXME need to decide return value
         self.playback.play().get()
         result = self.playback.seek(self.tracks[0].length * 100)
-        self.assert_(not result, 'Seek return value was %s' % result)
+        self.assert_(not result, "Seek return value was %s" % result)
 
     @populate_tracklist
     def test_seek_beyond_end_of_song_jumps_to_next_song(self):
@@ -887,7 +884,7 @@ class LocalPlaybackProviderTest(unittest.TestCase):
         self.assertEqual(len(self.tracklist.get_tracks().get()), 0)
 
     @populate_tracklist
-    @mock.patch('random.shuffle')
+    @mock.patch("random.shuffle")
     def test_play_with_random(self, shuffle_mock):
         shuffle_mock.side_effect = lambda tracks: tracks.reverse()
 
@@ -896,7 +893,7 @@ class LocalPlaybackProviderTest(unittest.TestCase):
         self.assert_current_track_is(self.tracks[-1])
 
     @populate_tracklist
-    @mock.patch('random.shuffle')
+    @mock.patch("random.shuffle")
     def test_previous_with_random(self, shuffle_mock):
         shuffle_mock.side_effect = lambda tracks: tracks.reverse()
 
@@ -1030,7 +1027,7 @@ class LocalPlaybackProviderTest(unittest.TestCase):
             self.playback.next().get()
 
     @populate_tracklist
-    @mock.patch('random.shuffle')
+    @mock.patch("random.shuffle")
     def test_play_track_then_enable_random(self, shuffle_mock):
         # Covers underlying issue IssueGH17RegressionTest tests for.
         shuffle_mock.side_effect = lambda tracks: tracks.reverse()
