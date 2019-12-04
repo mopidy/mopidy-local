@@ -2,17 +2,17 @@
 Mopidy-Local
 ************
 
-.. image:: https://img.shields.io/pypi/v/Mopidy-Local.svg?style=flat
+.. image:: https://img.shields.io/pypi/v/Mopidy-Local
     :target: https://pypi.org/project/Mopidy-Local/
     :alt: Latest PyPI version
 
-.. image:: https://img.shields.io/travis/mopidy/mopidy-local/master.svg?style=flat
-    :target: https://travis-ci.org/mopidy/mopidy-local
-    :alt: Travis CI build status
+.. image:: https://img.shields.io/circleci/build/gh/tkem/mopidy-local
+    :target: https://circleci.com/gh/tkem/mopidy-local
+    :alt: CircleCI build status
 
-.. image:: https://img.shields.io/coveralls/mopidy/mopidy-local/master.svg?style=flat
-   :target: https://coveralls.io/r/mopidy/mopidy-local
-   :alt: Test coverage
+.. image:: https://img.shields.io/codecov/c/gh/tkem/mopidy-local
+    :target: https://codecov.io/gh/tkem/mopidy-local
+    :alt: Test coverage
 
 `Mopidy`_ extension for playing music from your local music archive.
 
