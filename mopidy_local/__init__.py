@@ -1,4 +1,3 @@
-import logging
 import os
 import pathlib
 
@@ -6,9 +5,6 @@ from mopidy import config, ext
 
 
 __version__ = "3.0.0a1"
-
-
-logger = logging.getLogger(__name__)
 
 
 class Extension(ext.Extension):
