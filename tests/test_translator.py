@@ -1,5 +1,3 @@
-from mopidy import compat
-
 import pytest
 from mopidy_local import translator
 
@@ -97,7 +95,7 @@ def test_path_to_file_uri(path, uri):
 )
 def test_path_to_local_track_uri(path, uri):
     result = translator.path_to_local_track_uri(path)
-    assert isinstance(result, compat.text_type)
+    assert isinstance(result, str)
     assert result == uri
 
 
@@ -112,5 +110,5 @@ def test_path_to_local_track_uri(path, uri):
 )
 def test_path_to_local_directory_uri(path, uri):
     result = translator.path_to_local_directory_uri(path)
-    assert isinstance(result, compat.text_type)
+    assert isinstance(result, str)
     assert result == uri

@@ -2,7 +2,6 @@ import logging
 import os
 import urllib
 
-from mopidy import compat
 from mopidy.internal import path
 
 logger = logging.getLogger(__name__)
@@ -35,13 +34,13 @@ def path_to_file_uri(abspath):
 def path_to_local_track_uri(relpath):
     """Convert path relative to :confval:`local/media_dir` to local track
     URI."""
-    if isinstance(relpath, compat.text_type):
+    if isinstance(relpath, str):
         relpath = relpath.encode("utf-8")
     return "local:track:%s" % urllib.quote(relpath)
 
 
 def path_to_local_directory_uri(relpath):
     """Convert path relative to :confval:`local/media_dir` to directory URI."""
-    if isinstance(relpath, compat.text_type):
+    if isinstance(relpath, str):
         relpath = relpath.encode("utf-8")
     return "local:directory:%s" % urllib.quote(relpath)
