@@ -151,9 +151,9 @@ class LocalLibraryProvider(backend.LibraryProvider):
         # TODO: handle these in schema (generically)?
         if type == "date":
             format = query.get("format", "%Y-%m-%d")
-            return map(dateref, schema.dates(self._connect(), format=format))
+            return list(map(dateref, schema.dates(self._connect(), format=format)))
         if type == "genre":
-            return map(genreref, schema.list_distinct(self._connect(), "genre"))  # noqa
+            return list(map(genreref, schema.list_distinct(self._connect(), "genre")))
 
         # Fix #38: keep sort order of album tracks; this also applies
         # to composers and performers

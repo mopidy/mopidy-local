@@ -196,10 +196,10 @@ def load(c):
 
 
 def tracks(c):
-    return map(_track, c.execute("SELECT * FROM tracks"))
+    return list(map(_track, c.execute("SELECT * FROM tracks")))
 
 
-def list_distinct(c, field, query=[]):
+def list_distinct(c, field, query=tuple()):
     if field not in _SEARCH_FIELDS:
         raise LookupError("Invalid search field: %s" % field)
     sql = (
@@ -223,23 +223,28 @@ def list_distinct(c, field, query=[]):
     if terms:
         sql += " AND " + " AND ".join(terms)
     logger.debug("SQLite list query %r: %s", params, sql)
-    return map(operator.itemgetter(0), c.execute(sql, params))
+    return list(map(operator.itemgetter(0), c.execute(sql, params)))
 
 
 def dates(c, format="%Y-%m-%d"):
-    return map(operator.itemgetter(0), c.execute(
-        """
+    return list(
+        map(
+            operator.itemgetter(0),
+            c.execute(
+                """
         SELECT DISTINCT strftime(?, date) AS date
           FROM track
          WHERE date IS NOT NULL
          ORDER BY date
         """,
-        [format])
+                [format],
+            ),
+        )
     )
 
 
 def lookup(c, type, uri):
-    return map(_track, c.execute(_LOOKUP_QUERIES[type], [uri]))
+    return list(map(_track, c.execute(_LOOKUP_QUERIES[type], [uri])))
 
 
 def exists(c, uri):
@@ -254,7 +259,7 @@ def browse(c, type=None, order=("type", "name COLLATE NOCASE"), **kwargs):
     return [Ref(**row) for row in c.execute(sql, params)]
 
 
-def search_tracks(c, query, limit, offset, exact, filters=[]):
+def search_tracks(c, query, limit, offset, exact, filters=tuple()):
     if not query:
         sql, params = ("SELECT * FROM tracks WHERE 1", [])
     elif exact:
@@ -275,7 +280,7 @@ def search_tracks(c, query, limit, offset, exact, filters=[]):
     params += [limit, offset]
     logger.debug("SQLite search query %r: %s", params, sql)
     rows = c.execute(sql, params)
-    return map(_track, rows)
+    return list(map(_track, rows))
 
 
 def get_image_uris(c):
@@ -409,7 +414,7 @@ def _insert(c, table, params):
         table, ", ".join(params.keys()), ", ".join(["?"] * len(params))
     )
     logger.debug("SQLite insert statement: %s %r", sql, params.values())
-    return c.execute(sql, params.values())
+    return c.execute(sql, list(params.values()))
 
 
 def _filters(mapping, role=None, **kwargs):

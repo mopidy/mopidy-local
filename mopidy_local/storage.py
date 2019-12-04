@@ -6,7 +6,6 @@ import os
 import os.path
 import sqlite3
 import struct
-import sys
 
 import uritools
 
@@ -38,9 +37,9 @@ def model_uri(type, model):
         return f"local:{type}:mbid:{model.musicbrainz_id}"
     elif type == "album":
         # ignore num_tracks for multi-disc albums
-        digest = hashlib.md5(str(model.replace(num_tracks=None)))
+        digest = hashlib.md5(str(model.replace(num_tracks=None)).encode("utf-8"))
     else:
-        digest = hashlib.md5(str(model))
+        digest = hashlib.md5(str(model).encode("utf-8"))
     return "local:{}:md5:{}".format(type, digest.hexdigest())
 
 
@@ -51,10 +50,10 @@ def get_image_size_jpeg(data):
     size = 2
     while not 0xC0 <= ftype <= 0xCF:
         index += size
-        ftype = ord(data[index])
+        ftype = data[index]
         while ftype == 0xFF:
             index += 1
-            ftype = ord(data[index])
+            ftype = data[index]
         index += 1
         size = struct.unpack(">H", data[index : index + 2])[0] - 2
         index += 2
@@ -71,7 +70,7 @@ class LocalStorageProvider:
         self._image_dir = Extension.get_image_dir(config)
         self._base_uri = "/" + Extension.ext_name + "/"
         self._patterns = list(map(str, ext_config["album_art_files"]))
-        self._dbpath = os.path.join(self._data_dir, b"library.db")
+        self._dbpath = self._data_dir / "library.db"
         self._connection = None
 
     def load(self):
@@ -160,14 +159,13 @@ class LocalStorageProvider:
             model = model.replace(uri=model_uri("album", model))
         return model.replace(artists=map(self._validate_artist, model.artists))
 
-    def _validate_track(self, model, encoding=sys.getfilesystemencoding()):
+    def _validate_track(self, model):
         if not model.uri:
             raise ValueError("Empty track URI")
         if model.name:
             name = model.name
         else:
-            path = translator.local_track_uri_to_path(model.uri, b"")
-            name = os.path.basename(path).decode(encoding, errors="replace")
+            name = translator.local_uri_to_path(model.uri, "").name
         if model.album and model.album.name:
             album = self._validate_album(model.album)
         else:
@@ -203,7 +201,7 @@ class LocalStorageProvider:
         # look for external album art
         path = translator.local_uri_to_path(uri, self._media_dir)
         # replace brackets with character classes for use with glob
-        dirname = os.path.dirname(path).replace(b"[", b"[[]")
+        dirname = os.path.dirname(path).replace("[", "[[]")
         for pattern in self._patterns:
             for path in glob.glob(os.path.join(dirname, pattern)):
                 try:
@@ -217,7 +215,8 @@ class LocalStorageProvider:
         if not what:
             raise ValueError("Unknown image type")
         if not data:
-            data = open(path).read()
+            with open(path, "rb") as f:
+                data = f.read()
         digest, width, height = hashlib.md5(data).hexdigest(), None, None
         try:
             if what == "png":
