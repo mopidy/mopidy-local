@@ -6,8 +6,8 @@ from mopidy import core
 from mopidy.core import PlaybackState
 from mopidy.models import TlTrack, Track
 
-import mock
 from mopidy_local import actor
+from unittest import mock
 from tests import dummy_audio, generate_song, path_to_data_dir, populate_tracklist
 
 # TODO Test 'playlist repeat', e.g. repeat=1,single=0
