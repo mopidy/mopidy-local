@@ -1,4 +1,3 @@
-import itertools
 import logging
 import operator
 import pathlib
@@ -197,7 +196,7 @@ def load(c):
 
 
 def tracks(c):
-    return itertools.imap(_track, c.execute("SELECT * FROM tracks"))
+    return map(_track, c.execute("SELECT * FROM tracks"))
 
 
 def list_distinct(c, field, query=[]):
@@ -224,26 +223,23 @@ def list_distinct(c, field, query=[]):
     if terms:
         sql += " AND " + " AND ".join(terms)
     logger.debug("SQLite list query %r: %s", params, sql)
-    return itertools.imap(operator.itemgetter(0), c.execute(sql, params))
+    return map(operator.itemgetter(0), c.execute(sql, params))
 
 
 def dates(c, format="%Y-%m-%d"):
-    return itertools.imap(
-        operator.itemgetter(0),
-        c.execute(
-            """
-    SELECT DISTINCT strftime(?, date) AS date
-      FROM track
-     WHERE date IS NOT NULL
-     ORDER BY date
-    """,
-            [format],
-        ),
+    return map(operator.itemgetter(0), c.execute(
+        """
+        SELECT DISTINCT strftime(?, date) AS date
+          FROM track
+         WHERE date IS NOT NULL
+         ORDER BY date
+        """,
+        [format])
     )
 
 
 def lookup(c, type, uri):
-    return itertools.imap(_track, c.execute(_LOOKUP_QUERIES[type], [uri]))
+    return map(_track, c.execute(_LOOKUP_QUERIES[type], [uri]))
 
 
 def exists(c, uri):
