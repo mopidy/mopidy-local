@@ -157,7 +157,7 @@ class LocalStorageProvider:
             raise ValueError("Empty album name")
         if not model.uri:
             model = model.replace(uri=model_uri("album", model))
-        return model.replace(artists=map(self._validate_artist, model.artists))
+        return model.replace(artists=list(map(self._validate_artist, model.artists)))
 
     def _validate_track(self, model):
         if not model.uri:
@@ -173,9 +173,9 @@ class LocalStorageProvider:
         return model.replace(
             name=name,
             album=album,
-            artists=map(self._validate_artist, model.artists),
-            composers=map(self._validate_artist, model.composers),
-            performers=map(self._validate_artist, model.performers),
+            artists=list(map(self._validate_artist, model.artists)),
+            composers=list(map(self._validate_artist, model.composers)),
+            performers=list(map(self._validate_artist, model.performers)),
         )
 
     def _cleanup_images(self):
