@@ -1,3 +1,4 @@
+
 ************
 Mopidy-Local
 ************
@@ -6,12 +7,12 @@ Mopidy-Local
     :target: https://pypi.org/project/Mopidy-Local/
     :alt: Latest PyPI version
 
-.. image:: https://img.shields.io/circleci/build/gh/tkem/mopidy-local
-    :target: https://circleci.com/gh/tkem/mopidy-local
+.. image:: https://img.shields.io/circleci/build/gh/mopidy/mopidy-local
+    :target: https://circleci.com/gh/mopidy/mopidy-local
     :alt: CircleCI build status
 
-.. image:: https://img.shields.io/codecov/c/gh/tkem/mopidy-local
-    :target: https://codecov.io/gh/tkem/mopidy-local
+.. image:: https://img.shields.io/codecov/c/gh/mopidy/mopidy-local
+    :target: https://codecov.io/gh/mopidy/mopidy-local
     :alt: Test coverage
 
 `Mopidy`_ extension for playing music from your local music archive.
