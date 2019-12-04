@@ -1,6 +1,3 @@
-from __future__ import (
-    absolute_import, division, print_function, unicode_literals)
-
 import logging
 import os
 import time
@@ -24,7 +21,7 @@ def _get_library(args, config):
 class LocalCommand(commands.Command):
 
     def __init__(self):
-        super(LocalCommand, self).__init__()
+        super().__init__()
         self.add_child('scan', ScanCommand())
         self.add_child('clear', ClearCommand())
 
@@ -55,7 +52,7 @@ class ScanCommand(commands.Command):
     help = 'Scan local media files and populate the local library.'
 
     def __init__(self):
-        super(ScanCommand, self).__init__()
+        super().__init__()
         self.add_argument('--limit',
                           action='store', type=int, dest='limit', default=None,
                           help='Maximum number of tracks to scan')
@@ -158,7 +155,7 @@ class ScanCommand(commands.Command):
         return 0
 
 
-class _Progress(object):
+class _Progress:
 
     def __init__(self, batch_size, total):
         self.count = 0

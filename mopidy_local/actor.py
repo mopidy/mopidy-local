@@ -1,5 +1,3 @@
-from __future__ import absolute_import, unicode_literals
-
 import logging
 
 from mopidy import backend
@@ -18,7 +16,7 @@ class LocalBackend(pykka.ThreadingActor, backend.Backend):
     uri_schemes = ['local']
 
     def __init__(self, config, audio):
-        super(LocalBackend, self).__init__()
+        super().__init__()
 
         self.config = config
 

@@ -1,5 +1,3 @@
-from __future__ import absolute_import, unicode_literals
-
 import os
 import unittest
 
@@ -56,7 +54,7 @@ class LocalLibraryProviderTest(unittest.TestCase):
         self.assertEqual([track], self.library.lookup(uri).get())
 
     def test_add_noname_utf8(self):
-        name = u'Mi\xf0vikudags.mp3'
+        name = 'Mi\xf0vikudags.mp3'
         uri = translator.path_to_local_track_uri(name.encode('utf-8'))
         track = Track(name=name, uri=uri)
         self.storage.begin()

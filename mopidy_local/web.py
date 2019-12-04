@@ -1,5 +1,3 @@
-from __future__ import absolute_import, unicode_literals
-
 import logging
 import os
 
@@ -27,5 +25,4 @@ class IndexHandler(tornado.web.RequestHandler):
 
     def uris(self):
         for _, _, files in os.walk(self.root):
-            for name in files:
-                yield name
+            yield from files

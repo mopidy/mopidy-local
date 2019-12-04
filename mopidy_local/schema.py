@@ -1,5 +1,3 @@
-from __future__ import absolute_import, unicode_literals
-
 import itertools
 import logging
 import operator
@@ -385,7 +383,7 @@ def clear(c):
 
 
 def _insert(c, table, params):
-    sql = 'INSERT OR REPLACE INTO %s (%s) VALUES (%s)' % (
+    sql = 'INSERT OR REPLACE INTO {} ({}) VALUES ({})'.format(
         table,
         ', '.join(params.keys()),
         ', '.join(['?'] * len(params))

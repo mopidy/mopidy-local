@@ -1,5 +1,3 @@
-from __future__ import absolute_import, unicode_literals
-
 import hashlib
 import logging
 import operator
@@ -39,7 +37,7 @@ class LocalLibraryProvider(backend.LibraryProvider):
         uri=ROOT_DIRECTORY_URI, name='Local media')
 
     def __init__(self, backend, config):
-        super(LocalLibraryProvider, self).__init__(backend)
+        super().__init__(backend)
         self._config = ext_config = config[Extension.ext_name]
         self._data_dir = Extension.get_data_dir(config)
         self._directories = []
@@ -193,6 +191,6 @@ class LocalLibraryProvider(backend.LibraryProvider):
 
     def _model_uri(self, type, model):
         if model.musicbrainz_id and self._config['use_%s_mbid_uri' % type]:
-            return 'local:%s:mbid:%s' % (type, model.musicbrainz_id)
+            return f'local:{type}:mbid:{model.musicbrainz_id}'
         digest = hashlib.md5(str(model)).hexdigest()
-        return 'local:%s:md5:%s' % (type, digest)
+        return f'local:{type}:md5:{digest}'

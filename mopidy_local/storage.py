@@ -1,5 +1,3 @@
-from __future__ import absolute_import, unicode_literals
-
 import glob
 import hashlib
 import imghdr
@@ -26,23 +24,23 @@ def check_dirs_and_files(config):
 
 # would be nice to have these in imghdr...
 def get_image_size_png(data):
-    return struct.unpack(str('>ii'), data[16:24])
+    return struct.unpack('>ii', data[16:24])
 
 
 def get_image_size_gif(data):
-    return struct.unpack(str('<HH'), data[6:10])
+    return struct.unpack('<HH', data[6:10])
 
 
 def model_uri(type, model):
     # only use valid mbids; TODO: use regex for that?
     if model.musicbrainz_id and len(model.musicbrainz_id) == 36:
-        return 'local:%s:mbid:%s' % (type, model.musicbrainz_id)
+        return f'local:{type}:mbid:{model.musicbrainz_id}'
     elif type == 'album':
         # ignore num_tracks for multi-disc albums
         digest = hashlib.md5(str(model.replace(num_tracks=None)))
     else:
         digest = hashlib.md5(str(model))
-    return 'local:%s:md5:%s' % (type, digest.hexdigest())
+    return 'local:{}:md5:{}'.format(type, digest.hexdigest())
 
 
 def get_image_size_jpeg(data):
@@ -57,14 +55,14 @@ def get_image_size_jpeg(data):
             index += 1
             ftype = ord(data[index])
         index += 1
-        size = struct.unpack(str('>H'), data[index:index+2])[0] - 2
+        size = struct.unpack('>H', data[index:index+2])[0] - 2
         index += 2
     index += 1  # skip precision byte
-    height, width = struct.unpack(str('>HH'), data[index:index+4])
+    height, width = struct.unpack('>HH', data[index:index+4])
     return width, height
 
 
-class LocalStorageProvider(object):
+class LocalStorageProvider:
 
     def __init__(self, config):
         self._config = ext_config = config[Extension.ext_name]
@@ -233,7 +231,7 @@ class LocalStorageProvider(object):
         if width and height:
             name = '%s-%dx%d.%s' % (digest, width, height, what)
         else:
-            name = '%s.%s' % (digest, what)
+            name = f'{digest}.{what}'
         dest = os.path.join(self._image_dir, name)
         if not os.path.isfile(dest):
             logger.info('Creating file %s', dest)
