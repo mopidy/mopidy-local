@@ -1,10 +1,11 @@
 import os
 import pathlib
 
+import pkg_resources
+
 from mopidy import config, ext
 
-
-__version__ = "3.0.0a1"
+__version__ = pkg_resources.get_distribution("Mopidy-Local").version
 
 
 class Extension(ext.Extension):
