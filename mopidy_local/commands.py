@@ -73,7 +73,7 @@ class ScanCommand(commands.Command):
         flush_threshold = config["local"]["scan_flush_threshold"]
         excluded_file_extensions = config["local"]["excluded_file_extensions"]
         excluded_file_extensions = tuple(
-            bytes(file_ext.lower()) for file_ext in excluded_file_extensions
+            file_ext.lower() for file_ext in excluded_file_extensions
         )
 
         library = _get_library(args, config)
@@ -101,7 +101,7 @@ class ScanCommand(commands.Command):
         uris_in_library = set()
 
         for track in library.begin():
-            abspath = translator.local_track_uri_to_path(track.uri, media_dir)
+            abspath = translator.local_uri_to_path(track.uri, media_dir)
             mtime = file_mtimes.get(abspath)
             if mtime is None:
                 logger.debug("Missing file %s", track.uri)
@@ -118,7 +118,7 @@ class ScanCommand(commands.Command):
             relpath = os.path.relpath(abspath, media_dir)
             uri = translator.path_to_local_track_uri(relpath)
 
-            if b"/." in relpath or relpath.startswith(b"."):
+            if "/." in relpath or relpath.startswith("."):
                 logger.debug("Skipped %s: Hidden directory/file.", uri)
             elif relpath.lower().endswith(excluded_file_extensions):
                 logger.debug("Skipped %s: File extension excluded.", uri)
@@ -136,8 +136,8 @@ class ScanCommand(commands.Command):
 
         for uri in uris_to_update:
             try:
-                relpath = translator.local_track_uri_to_path(uri, media_dir)
-                file_uri = path.path_to_uri(os.path.join(media_dir, relpath))
+                relpath = translator.local_uri_to_path(uri, media_dir)
+                file_uri = path.path_to_uri(media_dir / relpath)
                 result = scanner.scan(file_uri)
                 if not result.playable:
                     logger.warning("Failed %s: No audio found in file.", uri)
@@ -146,7 +146,7 @@ class ScanCommand(commands.Command):
                         "Failed %s: Track shorter than %dms", uri, MIN_DURATION_MS
                     )
                 else:
-                    mtime = file_mtimes.get(os.path.join(media_dir, relpath))
+                    mtime = file_mtimes.get(media_dir / relpath)
                     track = tags.convert_tags_to_track(result.tags).replace(
                         uri=uri, length=result.duration, last_modified=mtime
                     )

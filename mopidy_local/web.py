@@ -1,5 +1,6 @@
 import logging
 import os
+import pathlib
 
 import tornado.web
 
@@ -19,7 +20,7 @@ class IndexHandler(tornado.web.RequestHandler):
         return self.render("index.html", images=self.uris())
 
     def get_template_path(self):
-        return os.path.join(os.path.dirname(__file__), "www")
+        return pathlib.Path(__file__).parent / "www"
 
     def uris(self):
         for _, _, files in os.walk(self.root):

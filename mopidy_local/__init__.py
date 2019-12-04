@@ -1,4 +1,3 @@
-import os
 import pathlib
 
 import pkg_resources
@@ -60,10 +59,9 @@ class Extension(ext.Extension):
         from mopidy.internal import path
 
         data_dir = cls.get_data_dir(config)
-        dir_path = os.path.join(data_dir, *paths)
-        path.get_or_create_dir(dir_path)
-        return dir_path
+        dir_path = data_dir.joinpath(*paths)
+        return path.get_or_create_dir(dir_path)
 
     @classmethod
     def get_image_dir(cls, config):
-        return cls.get_data_subdir(config, b"images")
+        return cls.get_data_subdir(config, "images")

@@ -1,8 +1,6 @@
 import hashlib
 import logging
 import operator
-import os
-import os.path
 import sqlite3
 
 import uritools
@@ -42,7 +40,7 @@ class LocalLibraryProvider(backend.LibraryProvider):
             name, uri = line.rsplit(None, 1)
             ref = Ref.directory(uri=uri, name=name)
             self._directories.append(ref)
-        self._dbpath = os.path.join(self._data_dir, b"library.db")
+        self._dbpath = self._data_dir / "library.db"
         self._connection = None
 
     def load(self):

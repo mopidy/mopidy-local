@@ -1,5 +1,4 @@
 import logging
-import os
 import urllib
 
 from mopidy.internal import path
@@ -16,13 +15,8 @@ def local_uri_to_path(uri, media_dir):
     """Convert local track or directory URI to absolute path."""
     if not uri.startswith("local:directory:") and not uri.startswith("local:track:"):
         raise ValueError("Invalid URI.")
-    file_path = path.uri_to_path(uri).split(b":", 1)[1]
-    return os.path.join(media_dir, file_path)
-
-
-def local_track_uri_to_path(uri, media_dir):
-    # Deprecated version to keep old versions of Mopidy-Local-Sqlite working.
-    return local_uri_to_path(uri, media_dir)
+    file_path = path.uri_to_path(uri.split(":", 2)[2])
+    return media_dir / file_path
 
 
 def path_to_file_uri(abspath):
@@ -36,11 +30,11 @@ def path_to_local_track_uri(relpath):
     URI."""
     if isinstance(relpath, str):
         relpath = relpath.encode("utf-8")
-    return "local:track:%s" % urllib.quote(relpath)
+    return "local:track:%s" % urllib.parse.quote(relpath)
 
 
 def path_to_local_directory_uri(relpath):
     """Convert path relative to :confval:`local/media_dir` to directory URI."""
     if isinstance(relpath, str):
         relpath = relpath.encode("utf-8")
-    return "local:directory:%s" % urllib.quote(relpath)
+    return "local:directory:%s" % urllib.parse.quote(relpath)

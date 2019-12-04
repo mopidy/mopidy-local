@@ -1,7 +1,7 @@
 import itertools
 import logging
 import operator
-import os
+import pathlib
 import re
 import sqlite3
 
@@ -179,7 +179,7 @@ class Connection(sqlite3.Connection):
 
 
 def load(c):
-    sql_dir = os.path.join(os.path.dirname(__file__), b"sql")
+    sql_dir = pathlib.Path(__file__).parent / "sql"
     user_version = c.execute("PRAGMA user_version").fetchone()[0]
     while user_version != schema_version:
         if user_version:
@@ -188,7 +188,7 @@ def load(c):
         else:
             logger.info("Creating SQLite database schema v%s", schema_version)
             filename = "schema.sql"
-        with open(os.path.join(sql_dir, filename)) as fh:
+        with open(sql_dir / filename) as fh:
             c.executescript(fh.read())
         new_version = c.execute("PRAGMA user_version").fetchone()[0]
         assert new_version != user_version
