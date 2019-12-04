@@ -5,9 +5,9 @@ tests of the core and backends.
 """
 
 
-from mopidy import audio
-
 import pykka
+
+from mopidy import audio
 
 
 def create_proxy(config=None, mixer=None):

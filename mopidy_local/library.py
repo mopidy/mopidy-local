@@ -6,7 +6,6 @@ import os.path
 import sqlite3
 
 import uritools
-
 from mopidy import backend, models
 from mopidy.models import Ref, SearchResult
 

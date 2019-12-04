@@ -5,7 +5,6 @@ import urllib
 from mopidy import compat
 from mopidy.internal import path
 
-
 logger = logging.getLogger(__name__)
 
 

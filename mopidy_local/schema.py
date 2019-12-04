@@ -420,7 +420,7 @@ def _filters(mapping, role=None, **kwargs):
     filters, params = [], []
     if role and "role" in mapping:
         rolemap = mapping["role"]
-        if isinstance(role, (str, bytes, unicode)):
+        if isinstance(role, (str, bytes)):
             filters.append(rolemap[role])
         else:
             filters.append(" OR ".join(rolemap[r] for r in role))

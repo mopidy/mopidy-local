@@ -1,13 +1,12 @@
 import logging
 
-from mopidy import backend
-
 import pykka
+
+from mopidy import backend
 
 from mopidy_local import storage
 from mopidy_local.library import LocalLibraryProvider
 from mopidy_local.playback import LocalPlaybackProvider
-
 
 logger = logging.getLogger(__name__)
 

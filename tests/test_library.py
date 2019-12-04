@@ -2,18 +2,16 @@ import os
 import unittest
 
 import pykka
-
 from mopidy import core
 from mopidy.models import SearchResult, Track
 
 from mopidy_local import actor, storage, translator
-
 from tests import dummy_audio, path_to_data_dir
 
 
 class LocalLibraryProviderTest(unittest.TestCase):
     config = {
-        "core": {"data_dir": path_to_data_dir(""), "max_tracklist_length": 10000,},
+        "core": {"data_dir": path_to_data_dir(""), "max_tracklist_length": 10000},
         "local": {
             "media_dir": path_to_data_dir(""),
             "directories": [],

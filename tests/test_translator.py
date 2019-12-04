@@ -1,7 +1,6 @@
 from mopidy import compat
 
 import pytest
-
 from mopidy_local import translator
 
 
@@ -30,7 +29,7 @@ def test_local_uri_to_file_uri(local_uri, file_uri):
     assert translator.local_uri_to_file_uri(local_uri, media_dir) == file_uri
 
 
-@pytest.mark.parametrize("uri", ["A/B", "local:foo:A/B",])
+@pytest.mark.parametrize("uri", ["A/B", "local:foo:A/B"])
 def test_local_uri_to_file_uri_errors(uri):
     media_dir = b"/home/alice/Music"
 
@@ -66,7 +65,7 @@ def test_local_uri_to_path(uri, path):
     assert translator.local_track_uri_to_path(uri, media_dir) == path
 
 
-@pytest.mark.parametrize("uri", ["A/B", "local:foo:A/B",])
+@pytest.mark.parametrize("uri", ["A/B", "local:foo:A/B"])
 def test_local_uri_to_path_errors(uri):
     media_dir = b"/home/alice/Music"
 

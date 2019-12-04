@@ -8,7 +8,6 @@ from mopidy.internal import path
 
 from mopidy_local import storage, translator
 
-
 logger = logging.getLogger(__name__)
 
 MIN_DURATION_MS = 100  # Shortest length of track to include.

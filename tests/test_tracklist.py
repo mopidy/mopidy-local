@@ -1,14 +1,12 @@
 import random
 import unittest
 
+import pykka
 from mopidy import core
 from mopidy.core import PlaybackState
 from mopidy.models import Playlist, Track
 
-import pykka
-
 from mopidy_local import actor
-
 from tests import dummy_audio, generate_song, path_to_data_dir, populate_tracklist
 
 
