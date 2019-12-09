@@ -1,46 +1,40 @@
-from __future__ import absolute_import, unicode_literals
-
 import random
 import unittest
 
+import pykka
 from mopidy import core
 from mopidy.core import PlaybackState
 from mopidy.models import Playlist, Track
 
-import pykka
-
 from mopidy_local import actor
-
-from tests import (
-    dummy_audio, generate_song, path_to_data_dir, populate_tracklist)
+from tests import dummy_audio, generate_song, path_to_data_dir, populate_tracklist
 
 
 class LocalTracklistProviderTest(unittest.TestCase):
     config = {
-        'core': {
-            'data_dir': path_to_data_dir(''),
-            'max_tracklist_length': 10000
+        "core": {"data_dir": path_to_data_dir(""), "max_tracklist_length": 10000},
+        "local": {
+            "media_dir": path_to_data_dir(""),
+            "directories": [],
+            "timeout": 10,
+            "use_artist_sortname": False,
+            "album_art_files": [],
         },
-        'local': {
-            'media_dir': path_to_data_dir(''),
-            'playlists_dir': b'',
-            'library': 'json',
-        }
     }
-    tracks = [
-        Track(uri=generate_song(i), length=4464) for i in range(1, 4)]
+    tracks = [Track(uri=generate_song(i), length=4464) for i in range(1, 4)]
 
     def setUp(self):  # noqa: N802
         self.audio = dummy_audio.create_proxy()
         self.backend = actor.LocalBackend.start(
-            config=self.config, audio=self.audio).proxy()
-        self.core = core.Core.start(audio=self.audio,
-                                    backends=[self.backend],
-                                    config=self.config).proxy()
+            config=self.config, audio=self.audio
+        ).proxy()
+        self.core = core.Core.start(
+            audio=self.audio, backends=[self.backend], config=self.config
+        ).proxy()
         self.controller = self.core.tracklist
         self.playback = self.core.playback
 
-        assert len(self.tracks) == 3, 'Need three tracks to run tests.'
+        assert len(self.tracks) == 3, "Need three tracks to run tests."
 
     def tearDown(self):  # noqa: N802
         pykka.ActorRegistry.stop_all()
@@ -92,60 +86,59 @@ class LocalTracklistProviderTest(unittest.TestCase):
     @populate_tracklist
     def test_filter_by_tlid(self):
         tl_track = self.controller.get_tl_tracks().get()[1]
-        result = self.controller.filter({'tlid': [tl_track.tlid]}).get()
+        result = self.controller.filter({"tlid": [tl_track.tlid]}).get()
         self.assertEqual([tl_track], result)
 
     @populate_tracklist
     def test_filter_by_uri(self):
         tl_track = self.controller.get_tl_tracks().get()[1]
-        result = self.controller.filter({'uri': [tl_track.track.uri]}).get()
+        result = self.controller.filter({"uri": [tl_track.track.uri]}).get()
         self.assertEqual([tl_track], result)
 
     @populate_tracklist
     def test_filter_by_uri_returns_nothing_for_invalid_uri(self):
-        self.assertEqual([], self.controller.filter({'uri': ['foobar']}).get())
+        self.assertEqual([], self.controller.filter({"uri": ["foobar"]}).get())
 
     def test_filter_by_uri_returns_single_match(self):
-        t = Track(uri='a')
-        self.controller.add([Track(uri='z'), t, Track(uri='y')])
+        t = Track(uri="a")
+        self.controller.add([Track(uri="z"), t, Track(uri="y")])
 
-        result = self.controller.filter({'uri': ['a']}).get()
+        result = self.controller.filter({"uri": ["a"]}).get()
         self.assertEqual(t, result[0].track)
 
     def test_filter_by_uri_returns_multiple_matches(self):
-        track = Track(uri='a')
-        self.controller.add([Track(uri='z'), track, track])
-        tl_tracks = self.controller.filter({'uri': ['a']}).get()
+        track = Track(uri="a")
+        self.controller.add([Track(uri="z"), track, track])
+        tl_tracks = self.controller.filter({"uri": ["a"]}).get()
         self.assertEqual(track, tl_tracks[0].track)
         self.assertEqual(track, tl_tracks[1].track)
 
     def test_filter_by_uri_returns_nothing_if_no_match(self):
-        self.controller.playlist = Playlist(
-            tracks=[Track(uri='z'), Track(uri='y')])
-        self.assertEqual([], self.controller.filter({'uri': ['a']}).get())
+        self.controller.playlist = Playlist(tracks=[Track(uri="z"), Track(uri="y")])
+        self.assertEqual([], self.controller.filter({"uri": ["a"]}).get())
 
     def test_filter_by_multiple_criteria_returns_elements_matching_all(self):
-        t1 = Track(uri='a', name='x')
-        t2 = Track(uri='b', name='x')
-        t3 = Track(uri='b', name='y')
+        t1 = Track(uri="a", name="x")
+        t2 = Track(uri="b", name="x")
+        t3 = Track(uri="b", name="y")
         self.controller.add([t1, t2, t3])
 
-        result1 = self.controller.filter({'uri': ['a'], 'name': ['x']}).get()
+        result1 = self.controller.filter({"uri": ["a"], "name": ["x"]}).get()
         self.assertEqual(t1, result1[0].track)
 
-        result2 = self.controller.filter({'uri': ['b'], 'name': ['x']}).get()
+        result2 = self.controller.filter({"uri": ["b"], "name": ["x"]}).get()
         self.assertEqual(t2, result2[0].track)
 
-        result3 = self.controller.filter({'uri': ['b'], 'name': ['y']}).get()
+        result3 = self.controller.filter({"uri": ["b"], "name": ["y"]}).get()
         self.assertEqual(t3, result3[0].track)
 
     def test_filter_by_criteria_that_is_not_present_in_all_elements(self):
         track1 = Track()
-        track2 = Track(uri='b')
+        track2 = Track(uri="b")
         track3 = Track()
 
         self.controller.add([track1, track2, track3])
-        result = self.controller.filter({'uri': ['b']}).get()
+        result = self.controller.filter({"uri": ["b"]}).get()
         self.assertEqual(track2, result[0].track)
 
     @populate_tracklist
@@ -165,19 +158,19 @@ class LocalTracklistProviderTest(unittest.TestCase):
         self.assert_state_is(PlaybackState.STOPPED)
 
     def test_add_appends_to_the_tracklist(self):
-        self.controller.add([Track(uri='a'), Track(uri='b')])
+        self.controller.add([Track(uri="a"), Track(uri="b")])
 
         tracks = self.controller.get_tracks().get()
         self.assertEqual(len(tracks), 2)
 
-        self.controller.add([Track(uri='c'), Track(uri='d')])
+        self.controller.add([Track(uri="c"), Track(uri="d")])
 
         tracks = self.controller.get_tracks().get()
         self.assertEqual(len(tracks), 4)
-        self.assertEqual(tracks[0].uri, 'a')
-        self.assertEqual(tracks[1].uri, 'b')
-        self.assertEqual(tracks[2].uri, 'c')
-        self.assertEqual(tracks[3].uri, 'd')
+        self.assertEqual(tracks[0].uri, "a")
+        self.assertEqual(tracks[1].uri, "b")
+        self.assertEqual(tracks[2].uri, "c")
+        self.assertEqual(tracks[3].uri, "d")
 
     def test_add_does_not_reset_version(self):
         version = self.controller.get_version().get()
@@ -259,17 +252,17 @@ class LocalTracklistProviderTest(unittest.TestCase):
         track1 = self.controller.get_tracks().get()[1]
         track2 = self.controller.get_tracks().get()[2]
         version = self.controller.get_version().get()
-        self.controller.remove({'uri': [track1.uri]})
+        self.controller.remove({"uri": [track1.uri]})
         self.assertLess(version, self.controller.get_version().get())
         self.assertNotIn(track1, self.controller.get_tracks().get())
         self.assertEqual(track2, self.controller.get_tracks().get()[1])
 
     @populate_tracklist
     def test_removing_track_that_does_not_exist_does_nothing(self):
-        self.controller.remove({'uri': ['/nonexistant']}).get()
+        self.controller.remove({"uri": ["/nonexistant"]}).get()
 
     def test_removing_from_empty_playlist_does_nothing(self):
-        self.controller.remove({'uri': ['/nonexistant']}).get()
+        self.controller.remove({"uri": ["/nonexistant"]}).get()
 
     @populate_tracklist
     def test_remove_lists(self):
@@ -279,7 +272,7 @@ class LocalTracklistProviderTest(unittest.TestCase):
         track1 = tracks[1]
         track2 = tracks[2]
 
-        self.controller.remove({'uri': [track0.uri, track2.uri]})
+        self.controller.remove({"uri": [track0.uri, track2.uri]})
 
         tracks = self.controller.get_tracks().get()
         self.assertLess(version, self.controller.get_version().get())

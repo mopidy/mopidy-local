@@ -1,18 +1,19 @@
+
 ************
 Mopidy-Local
 ************
 
-.. image:: https://img.shields.io/pypi/v/Mopidy-Local.svg?style=flat
+.. image:: https://img.shields.io/pypi/v/Mopidy-Local
     :target: https://pypi.org/project/Mopidy-Local/
     :alt: Latest PyPI version
 
-.. image:: https://img.shields.io/travis/mopidy/mopidy-local/master.svg?style=flat
-    :target: https://travis-ci.org/mopidy/mopidy-local
-    :alt: Travis CI build status
+.. image:: https://img.shields.io/circleci/build/gh/mopidy/mopidy-local
+    :target: https://circleci.com/gh/mopidy/mopidy-local
+    :alt: CircleCI build status
 
-.. image:: https://img.shields.io/coveralls/mopidy/mopidy-local/master.svg?style=flat
-   :target: https://coveralls.io/r/mopidy/mopidy-local
-   :alt: Test coverage
+.. image:: https://img.shields.io/codecov/c/gh/mopidy/mopidy-local
+    :target: https://codecov.io/gh/mopidy/mopidy-local
+    :alt: Test coverage
 
 `Mopidy`_ extension for playing music from your local music archive.
 
@@ -108,9 +109,6 @@ The following configuration values are available:
 - ``local/enabled``: If the local extension should be enabled or not.
   Defaults to ``true``.
 
-- ``local/library``: Local library provider to use, change this if you want to
-  use a third party library for local files.
-
 - ``local/media_dir``: Path to directory with local media files.
 
 - ``local/scan_timeout``: Number of milliseconds before giving up scanning a
@@ -125,6 +123,20 @@ The following configuration values are available:
 
 - ``local/excluded_file_extensions``: File extensions to exclude when scanning
   the media directory. Values should be separated by either comma or newline.
+
+- ``local/directories``: List of top-level directory names and URIs
+  for browsing.
+
+- ``local/timeout``: Database connection timeout in seconds.
+
+- ``local/use_artist_sortname``: Whether to use the sortname field for
+  ordering artist browse results. Disabled by default, since this may
+  give confusing results if not all artists in the library have proper
+  sortnames.
+
+- ``album_art_files``: List of file names to check for when searching
+  for external album art. These may contain UNIX shell patterns,
+  i.e. ``*``, ``?``, etc.
 
 
 Usage
@@ -159,14 +171,6 @@ When you've added or removed music in your collection and want to update
 Mopidy's index of your local library, you need to rescan::
 
     mopidy local scan
-
-Note that if you are using the default local library storage, ``json``, you
-need to restart Mopidy after the scan completes for the updated index to be
-used.
-
-If you want index updates to come into effect immediately, you can try out
-`Mopidy-Local-SQLite <https://github.com/mopidy/mopidy-local-sqlite>`_, which
-will probably become the default backend in the near future.
 
 
 Project resources

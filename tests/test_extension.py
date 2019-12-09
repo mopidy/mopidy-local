@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-
 from mopidy_local import Extension
 
 
@@ -26,3 +24,9 @@ def test_get_config_schema():
     assert "scan_flush_threshold" in schema
     assert "scan_follow_symlinks" in schema
     assert "excluded_file_extensions" in schema
+    # from mopidy-local-sqlite
+    assert "directories" in schema
+    assert "timeout" in schema
+    assert "use_artist_sortname" in schema
+    # from mopidy-local-images
+    assert "album_art_files" in schema
