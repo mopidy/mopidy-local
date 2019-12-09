@@ -37,9 +37,9 @@ def model_uri(type, model):
         return f"local:{type}:mbid:{model.musicbrainz_id}"
     elif type == "album":
         # ignore num_tracks for multi-disc albums
-        digest = hashlib.md5(str(model.replace(num_tracks=None)).encode("utf-8"))
+        digest = hashlib.md5(str(model.replace(num_tracks=None)).encode())
     else:
-        digest = hashlib.md5(str(model).encode("utf-8"))
+        digest = hashlib.md5(str(model).encode())
     return "local:{}:md5:{}".format(type, digest.hexdigest())
 
 

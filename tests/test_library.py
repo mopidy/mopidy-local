@@ -51,7 +51,7 @@ class LocalLibraryProviderTest(unittest.TestCase):
 
     def test_add_noname_utf8(self):
         name = "Mi\xf0vikudags.mp3"
-        uri = translator.path_to_local_track_uri(name.encode("utf-8"))
+        uri = translator.path_to_local_track_uri(name.encode())
         track = Track(name=name, uri=uri)
         self.storage.begin()
         self.storage.add(track)
