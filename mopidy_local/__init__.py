@@ -56,11 +56,10 @@ class Extension(ext.Extension):
     # TODO: Add *paths to Extension.get_data_dir()?
     @classmethod
     def get_data_subdir(cls, config, *paths):
-        from mopidy.internal import path
-
         data_dir = cls.get_data_dir(config)
         dir_path = data_dir.joinpath(*paths)
-        return path.get_or_create_dir(dir_path)
+        dir_path.mkdir(parents=True, exist_ok=True)
+        return dir_path
 
     @classmethod
     def get_image_dir(cls, config):
