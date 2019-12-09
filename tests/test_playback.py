@@ -61,44 +61,40 @@ class LocalPlaybackProviderTest(unittest.TestCase):
         pykka.ActorRegistry.stop_all()
 
     def assert_state_is(self, state):
-        self.assertEqual(self.playback.get_state().get(), state)
+        assert self.playback.get_state().get() == state
 
     def assert_current_track_is(self, track):
-        self.assertEqual(self.playback.get_current_track().get(), track)
+        assert self.playback.get_current_track().get() == track
 
     def assert_current_track_is_not(self, track):
-        self.assertNotEqual(self.playback.get_current_track().get(), track)
+        assert self.playback.get_current_track().get() != track
 
     def assert_current_track_index_is(self, index):
         tl_track = self.playback.get_current_tl_track().get()
-        self.assertEqual(self.tracklist.index(tl_track).get(), index)
+        assert self.tracklist.index(tl_track).get() == index
 
     def assert_next_tl_track_is(self, tl_track):
-        self.assertEqual(
-            self.tracklist.get_next_tlid().get(), tl_track and tl_track.tlid
-        )
+        assert self.tracklist.get_next_tlid().get() == (tl_track and tl_track.tlid)
 
     def assert_next_tl_track_is_not(self, tl_track):
-        self.assertNotEqual(
-            self.tracklist.get_next_tlid().get(), tl_track and tl_track.tlid
-        )
+        assert self.tracklist.get_next_tlid().get() != (tl_track and tl_track.tlid)
 
     def assert_previous_tl_track_is(self, tl_track):
         current = self.playback.get_current_tl_track().get()
         previous = self.tracklist.previous_track(current).get()
-        self.assertEqual(previous, tl_track)
+        assert previous == tl_track
 
     def assert_eot_tl_track_is(self, tl_track):
         current = self.playback.get_current_tl_track().get()
-        self.assertEqual(self.tracklist.eot_track(current).get(), tl_track)
+        assert self.tracklist.eot_track(current).get() == tl_track
 
     def assert_eot_tl_track_is_not(self, tl_track):
         current = self.playback.get_current_tl_track().get()
-        self.assertNotEqual(self.tracklist.eot_track(current).get(), tl_track)
+        assert self.tracklist.eot_track(current).get() != tl_track
 
     def test_uri_scheme(self):
-        self.assertNotIn("file", self.core.get_uri_schemes().get())
-        self.assertIn("local", self.core.get_uri_schemes().get())
+        assert "file" not in self.core.get_uri_schemes().get()
+        assert "local" in self.core.get_uri_schemes().get()
 
     def test_play_mp3(self):
         self.add_track("local:track:blank.mp3")
@@ -132,7 +128,7 @@ class LocalPlaybackProviderTest(unittest.TestCase):
         self.assert_state_is(PlaybackState.STOPPED)
 
     def test_play_with_empty_playlist_return_value(self):
-        self.assertEqual(self.playback.play().get(), None)
+        assert self.playback.play().get() is None
 
     @populate_tracklist
     def test_play_state(self):
@@ -142,7 +138,7 @@ class LocalPlaybackProviderTest(unittest.TestCase):
 
     @populate_tracklist
     def test_play_return_value(self):
-        self.assertEqual(self.playback.play().get(), None)
+        assert self.playback.play().get() is None
 
     @populate_tracklist
     def test_play_track_state(self):
@@ -152,7 +148,7 @@ class LocalPlaybackProviderTest(unittest.TestCase):
 
     @populate_tracklist
     def test_play_track_return_value(self):
-        self.assertIsNone(self.playback.play(self.tl_tracks.get()[-1]).get())
+        assert self.playback.play(self.tl_tracks.get()[(-1)]).get() is None
 
     @populate_tracklist
     def test_play_when_playing(self):
@@ -233,7 +229,7 @@ class LocalPlaybackProviderTest(unittest.TestCase):
     def test_previous_return_value(self):
         self.playback.play().get()
         self.playback.next().get()
-        self.assertIsNone(self.playback.previous().get())
+        assert self.playback.previous().get() is None
 
     @populate_tracklist
     def test_previous_does_not_trigger_playback(self):
@@ -275,13 +271,13 @@ class LocalPlaybackProviderTest(unittest.TestCase):
 
         self.playback.next().get()
 
-        self.assertEqual(self.tracklist.index().get(), old_position + 1)
+        assert self.tracklist.index().get() == (old_position + 1)
         self.assert_current_track_is_not(old_track)
 
     @populate_tracklist
     def test_next_return_value(self):
         self.playback.play().get()
-        self.assertEqual(self.playback.next().get(), None)
+        assert self.playback.next().get() is None
 
     @populate_tracklist
     def test_next_does_not_trigger_playback(self):
@@ -295,7 +291,7 @@ class LocalPlaybackProviderTest(unittest.TestCase):
         for i, track in enumerate(self.tracks):
             self.assert_state_is(PlaybackState.PLAYING)
             self.assert_current_track_is(track)
-            self.assertEqual(self.tracklist.index().get(), i)
+            assert self.tracklist.index().get() == i
 
             self.playback.next()  # noqa: B305
 
@@ -378,7 +374,7 @@ class LocalPlaybackProviderTest(unittest.TestCase):
         self.tracklist.set_consume(True)
         self.playback.play().get()
         self.playback.next().get()
-        self.assertNotIn(self.tracks[0], self.tracklist.get_tracks().get())
+        assert self.tracks[0] not in self.tracklist.get_tracks().get()
 
     @populate_tracklist
     def test_next_with_single_and_repeat(self):
@@ -412,7 +408,7 @@ class LocalPlaybackProviderTest(unittest.TestCase):
 
         # Baseline checking that first next_track is last tl track per our fake
         # shuffle.
-        self.assertEqual(next_tlid, expected_tl_track.tlid)
+        assert next_tlid == expected_tl_track.tlid
 
         self.tracklist.add(self.tracks[:1])
 
@@ -422,8 +418,8 @@ class LocalPlaybackProviderTest(unittest.TestCase):
 
         # Verify that first next track has changed since we added to the
         # playlist.
-        self.assertEqual(next_tlid, expected_tl_track.tlid)
-        self.assertNotEqual(next_tlid, old_next_tlid)
+        assert next_tlid == expected_tl_track.tlid
+        assert next_tlid != old_next_tlid
 
     @populate_tracklist
     def test_end_of_track(self):
@@ -435,13 +431,13 @@ class LocalPlaybackProviderTest(unittest.TestCase):
         self.trigger_about_to_finish()
 
         new_track = self.playback.get_current_track().get()
-        self.assertEqual(self.tracklist.index().get(), old_position + 1)
-        self.assertNotEqual(new_track.uri, old_track.uri)
+        assert self.tracklist.index().get() == (old_position + 1)
+        assert new_track.uri != old_track.uri
 
     @populate_tracklist
     def test_end_of_track_return_value(self):
         self.playback.play().get()
-        self.assertEqual(self.trigger_about_to_finish(), None)
+        assert self.trigger_about_to_finish() is None
 
     @populate_tracklist
     def test_end_of_track_does_not_trigger_playback(self):
@@ -455,7 +451,7 @@ class LocalPlaybackProviderTest(unittest.TestCase):
         for i, track in enumerate(self.tracks):
             self.assert_state_is(PlaybackState.PLAYING)
             self.assert_current_track_is(track)
-            self.assertEqual(self.tracklist.index().get(), i)
+            assert self.tracklist.index().get() == i
 
             self.trigger_about_to_finish()
 
@@ -468,7 +464,7 @@ class LocalPlaybackProviderTest(unittest.TestCase):
         for _ in self.tracks:
             self.trigger_about_to_finish()
 
-        self.assertEqual(self.playback.get_current_track().get(), None)
+        assert self.playback.get_current_track().get() is None
         self.assert_state_is(PlaybackState.STOPPED)
 
         self.playback.play().get()
@@ -541,7 +537,7 @@ class LocalPlaybackProviderTest(unittest.TestCase):
         self.tracklist.set_consume(True)
         self.playback.play().get()
         self.trigger_about_to_finish()
-        self.assertNotIn(self.tracks[0], self.tracklist.get_tracks().get())
+        assert self.tracks[0] not in self.tracklist.get_tracks().get()
 
     @populate_tracklist
     @mock.patch("random.shuffle")
@@ -566,7 +562,7 @@ class LocalPlaybackProviderTest(unittest.TestCase):
 
         # Baseline checking that first eot_track is last tl track per our fake
         # shuffle.
-        self.assertEqual(eot_tlid, expected_tl_track.tlid)
+        assert eot_tlid == expected_tl_track.tlid
 
         self.tracklist.add(self.tracks[:1])
 
@@ -576,8 +572,8 @@ class LocalPlaybackProviderTest(unittest.TestCase):
 
         # Verify that first next track has changed since we added to the
         # playlist.
-        self.assertEqual(eot_tlid, expected_tl_track.tlid)
-        self.assertNotEqual(eot_tlid, old_eot_tlid)
+        assert eot_tlid == expected_tl_track.tlid
+        assert eot_tlid != old_eot_tlid
 
     @populate_tracklist
     def test_previous_track_before_play(self):
@@ -638,7 +634,7 @@ class LocalPlaybackProviderTest(unittest.TestCase):
 
     @populate_tracklist
     def test_initial_tracklist_position(self):
-        self.assertEqual(self.tracklist.index().get(), None)
+        assert self.tracklist.index().get() is None
 
     @populate_tracklist
     def test_tracklist_position_during_play(self):
@@ -707,7 +703,7 @@ class LocalPlaybackProviderTest(unittest.TestCase):
     @populate_tracklist
     def test_pause_return_value(self):
         self.playback.play().get()
-        self.assertIsNone(self.playback.pause().get())
+        assert self.playback.pause().get() is None
 
     @populate_tracklist
     def test_resume_when_stopped(self):
@@ -731,7 +727,7 @@ class LocalPlaybackProviderTest(unittest.TestCase):
     def test_resume_return_value(self):
         self.playback.play().get()
         self.playback.pause()
-        self.assertIsNone(self.playback.resume().get())
+        assert self.playback.resume().get() is None
 
     @unittest.SkipTest  # Uses sleep and might not work with LocalBackend
     @populate_tracklist
@@ -740,7 +736,7 @@ class LocalPlaybackProviderTest(unittest.TestCase):
         time.sleep(0.2)
         self.playback.pause()
         self.playback.resume()
-        self.assertNotEqual(self.playback.get_time_position(), 0)
+        assert self.playback.get_time_position() != 0
 
     @populate_tracklist
     def test_seek_when_stopped(self):
@@ -752,10 +748,10 @@ class LocalPlaybackProviderTest(unittest.TestCase):
     def test_seek_when_stopped_updates_position(self):
         self.playback.seek(1000).get()
         position = self.playback.get_time_position()
-        self.assertGreaterEqual(position, 990)
+        assert position >= 990
 
     def test_seek_on_empty_playlist(self):
-        self.assertFalse(self.playback.seek(0).get())
+        assert not self.playback.seek(0).get()
 
     def test_seek_on_empty_playlist_updates_position(self):
         self.playback.seek(0).get()
@@ -778,7 +774,7 @@ class LocalPlaybackProviderTest(unittest.TestCase):
         self.playback.play().get()
         self.playback.seek(length - 1000).get()
         position = self.playback.get_time_position().get()
-        self.assertGreaterEqual(position, length - 1010)
+        assert position >= (length - 1010)
 
     @populate_tracklist
     def test_seek_when_paused(self):
@@ -795,7 +791,7 @@ class LocalPlaybackProviderTest(unittest.TestCase):
         self.playback.pause()
         self.playback.seek(length - 1000)
         position = self.playback.get_time_position().get()
-        self.assertGreaterEqual(position, length - 1010)
+        assert position >= (length - 1010)
 
     @unittest.SkipTest
     @populate_tracklist
@@ -837,14 +833,14 @@ class LocalPlaybackProviderTest(unittest.TestCase):
 
     def test_stop_return_value(self):
         self.playback.play().get()
-        self.assertIsNone(self.playback.stop().get())
+        assert self.playback.stop().get() is None
 
     def test_time_position_when_stopped(self):
-        self.assertEqual(self.playback.get_time_position().get(), 0)
+        assert self.playback.get_time_position().get() == 0
 
     @populate_tracklist
     def test_time_position_when_stopped_with_playlist(self):
-        self.assertEqual(self.playback.get_time_position().get(), 0)
+        assert self.playback.get_time_position().get() == 0
 
     @unittest.SkipTest  # Uses sleep and does might not work with LocalBackend
     @populate_tracklist
@@ -853,7 +849,7 @@ class LocalPlaybackProviderTest(unittest.TestCase):
         first = self.playback.get_time_position().get()
         time.sleep(1)
         second = self.playback.get_time_position().get()
-        self.assertGreater(second, first)
+        assert second > first
 
     @populate_tracklist
     def test_time_position_when_paused(self):
@@ -861,7 +857,7 @@ class LocalPlaybackProviderTest(unittest.TestCase):
         self.playback.pause().get()
         first = self.playback.get_time_position().get()
         second = self.playback.get_time_position().get()
-        self.assertEqual(first, second)
+        assert first == second
 
     @populate_tracklist
     def test_play_with_consume(self):
@@ -878,7 +874,7 @@ class LocalPlaybackProviderTest(unittest.TestCase):
             self.trigger_about_to_finish()
         # EOS should have trigger
 
-        self.assertEqual(len(self.tracklist.get_tracks().get()), 0)
+        assert len(self.tracklist.get_tracks().get()) == 0
 
     @populate_tracklist
     @mock.patch("random.shuffle")
@@ -954,13 +950,13 @@ class LocalPlaybackProviderTest(unittest.TestCase):
         self.assert_state_is(PlaybackState.STOPPED)
 
     def test_repeat_off_by_default(self):
-        self.assertEqual(self.tracklist.get_repeat().get(), False)
+        assert self.tracklist.get_repeat().get() is False
 
     def test_random_off_by_default(self):
-        self.assertEqual(self.tracklist.get_random().get(), False)
+        assert self.tracklist.get_random().get() is False
 
     def test_consume_off_by_default(self):
-        self.assertEqual(self.tracklist.get_consume().get(), False)
+        assert self.tracklist.get_consume().get() is False
 
     @populate_tracklist
     def test_random_until_end_of_playlist(self):
@@ -1019,7 +1015,7 @@ class LocalPlaybackProviderTest(unittest.TestCase):
         played = []
         for _ in self.tracks:
             track = self.playback.get_current_track().get()
-            self.assertNotIn(track, played)
+            assert track not in played
             played.append(track)
             self.playback.next().get()
 
@@ -1039,7 +1035,7 @@ class LocalPlaybackProviderTest(unittest.TestCase):
             actual.append(self.playback.get_current_tl_track().get())
             if len(actual) > len(expected):
                 break
-        self.assertEqual(actual, expected)
+        assert actual == expected
 
     @populate_tracklist
     def test_playing_track_that_isnt_in_playlist(self):

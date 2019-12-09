@@ -44,9 +44,9 @@ class SchemaTest(unittest.TestCase):
 
     def test_create(self):
         count = schema.count_tracks(self.connection)
-        self.assertEqual(len(self.tracks), count)
+        assert len(self.tracks) == count
         tracks = list(schema.tracks(self.connection))
-        self.assertEqual(len(self.tracks), len(tracks))
+        assert len(self.tracks) == len(tracks)
 
     def test_list_distinct(self):
         self.assertCountEqual(
@@ -80,26 +80,26 @@ class SchemaTest(unittest.TestCase):
         with self.connection as c:
             for track in self.tracks:
                 result = schema.lookup(c, Ref.TRACK, track.uri)
-                self.assertEqual([track], list(result))
+                assert [track] == list(result)
 
     def test_lookup_album(self):
         with self.connection as c:
             result = schema.lookup(c, Ref.ALBUM, self.albums[0].uri)
-            self.assertEqual([self.tracks[2]], list(result))
+            assert [self.tracks[2]] == list(result)
 
             result = schema.lookup(c, Ref.ALBUM, self.albums[1].uri)
-            self.assertEqual([self.tracks[3]], list(result))
+            assert [self.tracks[3]] == list(result)
 
             result = schema.lookup(c, Ref.ALBUM, self.albums[2].uri)
-            self.assertEqual([self.tracks[4]], list(result))
+            assert [self.tracks[4]] == list(result)
 
     def test_lookup_artist(self):
         with self.connection as c:
             result = schema.lookup(c, Ref.ARTIST, self.artists[0].uri)
-            self.assertEqual([self.tracks[1], self.tracks[3]], list(result))
+            assert [self.tracks[1], self.tracks[3]] == list(result)
 
             result = schema.lookup(c, Ref.ARTIST, self.artists[1].uri)
-            self.assertEqual([self.tracks[4]], list(result))
+            assert [self.tracks[4]] == list(result)
 
     @unittest.SkipTest  # TODO: check indexed search
     def test_indexed_search(self):
@@ -150,26 +150,21 @@ class SchemaTest(unittest.TestCase):
             return Ref.artist(name=artist.name, uri=artist.uri)
 
         with self.connection as c:
-            self.assertEqual(list(map(ref, self.artists)), schema.browse(c, Ref.ARTIST))
-            self.assertEqual(
-                list(map(ref, self.artists)),
-                schema.browse(c, Ref.ARTIST, role=["artist", "albumartist"]),
+            assert list(map(ref, self.artists)) == schema.browse(c, Ref.ARTIST)
+            assert list(map(ref, self.artists)) == schema.browse(
+                c, Ref.ARTIST, role=["artist", "albumartist"]
             )
-            self.assertEqual(
-                list(map(ref, self.artists[0:1])),
-                schema.browse(c, Ref.ARTIST, role="artist"),
+            assert list(map(ref, self.artists[0:1])) == schema.browse(
+                c, Ref.ARTIST, role="artist"
             )
-            self.assertEqual(
-                list(map(ref, self.artists[0:1])),
-                schema.browse(c, Ref.ARTIST, role="composer"),
+            assert list(map(ref, self.artists[0:1])) == schema.browse(
+                c, Ref.ARTIST, role="composer"
             )
-            self.assertEqual(
-                list(map(ref, self.artists[0:1])),
-                schema.browse(c, Ref.ARTIST, role="performer"),
+            assert list(map(ref, self.artists[0:1])) == schema.browse(
+                c, Ref.ARTIST, role="performer"
             )
-            self.assertEqual(
-                list(map(ref, self.artists)),
-                schema.browse(c, Ref.ARTIST, role="albumartist"),
+            assert list(map(ref, self.artists)) == schema.browse(
+                c, Ref.ARTIST, role="albumartist"
             )
 
     def test_browse_albums(self):
@@ -177,14 +172,12 @@ class SchemaTest(unittest.TestCase):
             return Ref.album(name=album.name, uri=album.uri)
 
         with self.connection as c:
-            self.assertEqual(list(map(ref, self.albums)), schema.browse(c, Ref.ALBUM))
-            self.assertEqual(
-                list(map(ref, [])),
-                schema.browse(c, Ref.ALBUM, artist=self.artists[0].uri),
+            assert list(map(ref, self.albums)) == schema.browse(c, Ref.ALBUM)
+            assert list(map(ref, [])) == schema.browse(
+                c, Ref.ALBUM, artist=self.artists[0].uri
             )
-            self.assertEqual(
-                list(map(ref, self.albums[1:2])),
-                schema.browse(c, Ref.ALBUM, albumartist=self.artists[0].uri),
+            assert list(map(ref, self.albums[1:2])) == schema.browse(
+                c, Ref.ALBUM, albumartist=self.artists[0].uri
             )
 
     def test_browse_tracks(self):
@@ -192,52 +185,46 @@ class SchemaTest(unittest.TestCase):
             return Ref.track(name=track.name, uri=track.uri)
 
         with self.connection as c:
-            self.assertEqual(list(map(ref, self.tracks)), schema.browse(c, Ref.TRACK))
-            self.assertEqual(
-                list(map(ref, self.tracks[1:2])),
-                schema.browse(c, Ref.TRACK, artist=self.artists[0].uri),
+            assert list(map(ref, self.tracks)) == schema.browse(c, Ref.TRACK)
+            assert list(map(ref, self.tracks[1:2])) == schema.browse(
+                c, Ref.TRACK, artist=self.artists[0].uri
             )
-            self.assertEqual(
-                list(map(ref, self.tracks[2:3])),
-                schema.browse(c, Ref.TRACK, album=self.albums[0].uri),
+            assert list(map(ref, self.tracks[2:3])) == schema.browse(
+                c, Ref.TRACK, album=self.albums[0].uri
             )
-            self.assertEqual(
-                list(map(ref, self.tracks[3:4])),
-                schema.browse(c, Ref.TRACK, albumartist=self.artists[0].uri),
+            assert list(map(ref, self.tracks[3:4])) == schema.browse(
+                c, Ref.TRACK, albumartist=self.artists[0].uri
             )
-            self.assertEqual(
-                list(map(ref, self.tracks[4:5])),
-                schema.browse(
-                    c,
-                    Ref.TRACK,
-                    composer=self.artists[0].uri,
-                    performer=self.artists[0].uri,
-                ),
+            assert list(map(ref, self.tracks[4:5])) == schema.browse(
+                c,
+                Ref.TRACK,
+                composer=self.artists[0].uri,
+                performer=self.artists[0].uri,
             )
 
     def test_delete(self):
         c = self.connection
         schema.delete_track(c, self.tracks[0].uri)
         schema.cleanup(c)
-        self.assertEqual(3, len(c.execute("SELECT * FROM album").fetchall()))
-        self.assertEqual(2, len(c.execute("SELECT * FROM artist").fetchall()))
+        assert 3 == len(c.execute("SELECT * FROM album").fetchall())
+        assert 2 == len(c.execute("SELECT * FROM artist").fetchall())
 
         schema.delete_track(c, self.tracks[1].uri)
         schema.cleanup(c)
-        self.assertEqual(3, len(c.execute("SELECT * FROM album").fetchall()))
-        self.assertEqual(2, len(c.execute("SELECT * FROM artist").fetchall()))
+        assert 3 == len(c.execute("SELECT * FROM album").fetchall())
+        assert 2 == len(c.execute("SELECT * FROM artist").fetchall())
 
         schema.delete_track(c, self.tracks[2].uri)
         schema.cleanup(c)
-        self.assertEqual(2, len(c.execute("SELECT * FROM album").fetchall()))
-        self.assertEqual(2, len(c.execute("SELECT * FROM artist").fetchall()))
+        assert 2 == len(c.execute("SELECT * FROM album").fetchall())
+        assert 2 == len(c.execute("SELECT * FROM artist").fetchall())
 
         schema.delete_track(c, self.tracks[3].uri)
         schema.cleanup(c)
-        self.assertEqual(1, len(c.execute("SELECT * FROM album").fetchall()))
-        self.assertEqual(2, len(c.execute("SELECT * FROM artist").fetchall()))
+        assert 1 == len(c.execute("SELECT * FROM album").fetchall())
+        assert 2 == len(c.execute("SELECT * FROM artist").fetchall())
 
         schema.delete_track(c, self.tracks[4].uri)
         schema.cleanup(c)
-        self.assertEqual(0, len(c.execute("SELECT * FROM album").fetchall()))
-        self.assertEqual(0, len(c.execute("SELECT * FROM artist").fetchall()))
+        assert 0 == len(c.execute("SELECT * FROM album").fetchall())
+        assert 0 == len(c.execute("SELECT * FROM artist").fetchall())

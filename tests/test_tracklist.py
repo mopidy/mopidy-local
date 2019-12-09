@@ -40,17 +40,17 @@ class LocalTracklistProviderTest(unittest.TestCase):
         pykka.ActorRegistry.stop_all()
 
     def assert_state_is(self, state):
-        self.assertEqual(self.playback.get_state().get(), state)
+        assert self.playback.get_state().get() == state
 
     def assert_current_track_is(self, track):
-        self.assertEqual(self.playback.get_current_track().get(), track)
+        assert self.playback.get_current_track().get() == track
 
     def test_length(self):
-        self.assertEqual(0, len(self.controller.get_tl_tracks().get()))
-        self.assertEqual(0, self.controller.get_length().get())
+        assert 0 == len(self.controller.get_tl_tracks().get())
+        assert 0 == self.controller.get_length().get()
         self.controller.add(self.tracks)
-        self.assertEqual(3, len(self.controller.get_tl_tracks().get()))
-        self.assertEqual(3, self.controller.get_length().get())
+        assert 3 == len(self.controller.get_tl_tracks().get())
+        assert 3 == self.controller.get_length().get()
 
     def test_add(self):
         for track in self.tracks:
@@ -58,9 +58,9 @@ class LocalTracklistProviderTest(unittest.TestCase):
             tracks = self.controller.get_tracks().get()
             tl_tracks = self.controller.get_tl_tracks().get()
 
-            self.assertEqual(track, tracks[-1])
-            self.assertEqual(added[0], tl_tracks[-1])
-            self.assertEqual(track, added[0].track)
+            assert track == tracks[(-1)]
+            assert added[0] == tl_tracks[(-1)]
+            assert track == added[0].track
 
     def test_add_at_position(self):
         for track in self.tracks[:-1]:
@@ -68,9 +68,9 @@ class LocalTracklistProviderTest(unittest.TestCase):
             tracks = self.controller.get_tracks().get()
             tl_tracks = self.controller.get_tl_tracks().get()
 
-            self.assertEqual(track, tracks[0])
-            self.assertEqual(added[0], tl_tracks[0])
-            self.assertEqual(track, added[0].track)
+            assert track == tracks[0]
+            assert added[0] == tl_tracks[0]
+            assert track == added[0].track
 
     @populate_tracklist
     def test_add_at_position_outside_of_playlist(self):
@@ -79,43 +79,43 @@ class LocalTracklistProviderTest(unittest.TestCase):
             tracks = self.controller.get_tracks().get()
             tl_tracks = self.controller.get_tl_tracks().get()
 
-            self.assertEqual(track, tracks[-1])
-            self.assertEqual(added[0], tl_tracks[-1])
-            self.assertEqual(track, added[0].track)
+            assert track == tracks[(-1)]
+            assert added[0] == tl_tracks[(-1)]
+            assert track == added[0].track
 
     @populate_tracklist
     def test_filter_by_tlid(self):
         tl_track = self.controller.get_tl_tracks().get()[1]
         result = self.controller.filter({"tlid": [tl_track.tlid]}).get()
-        self.assertEqual([tl_track], result)
+        assert [tl_track] == result
 
     @populate_tracklist
     def test_filter_by_uri(self):
         tl_track = self.controller.get_tl_tracks().get()[1]
         result = self.controller.filter({"uri": [tl_track.track.uri]}).get()
-        self.assertEqual([tl_track], result)
+        assert [tl_track] == result
 
     @populate_tracklist
     def test_filter_by_uri_returns_nothing_for_invalid_uri(self):
-        self.assertEqual([], self.controller.filter({"uri": ["foobar"]}).get())
+        assert [] == self.controller.filter({"uri": ["foobar"],}).get()
 
     def test_filter_by_uri_returns_single_match(self):
         t = Track(uri="a")
         self.controller.add([Track(uri="z"), t, Track(uri="y")])
 
         result = self.controller.filter({"uri": ["a"]}).get()
-        self.assertEqual(t, result[0].track)
+        assert t == result[0].track
 
     def test_filter_by_uri_returns_multiple_matches(self):
         track = Track(uri="a")
         self.controller.add([Track(uri="z"), track, track])
         tl_tracks = self.controller.filter({"uri": ["a"]}).get()
-        self.assertEqual(track, tl_tracks[0].track)
-        self.assertEqual(track, tl_tracks[1].track)
+        assert track == tl_tracks[0].track
+        assert track == tl_tracks[1].track
 
     def test_filter_by_uri_returns_nothing_if_no_match(self):
         self.controller.playlist = Playlist(tracks=[Track(uri="z"), Track(uri="y")])
-        self.assertEqual([], self.controller.filter({"uri": ["a"]}).get())
+        assert [] == self.controller.filter({"uri": ["a"],}).get()
 
     def test_filter_by_multiple_criteria_returns_elements_matching_all(self):
         t1 = Track(uri="a", name="x")
@@ -124,13 +124,13 @@ class LocalTracklistProviderTest(unittest.TestCase):
         self.controller.add([t1, t2, t3])
 
         result1 = self.controller.filter({"uri": ["a"], "name": ["x"]}).get()
-        self.assertEqual(t1, result1[0].track)
+        assert t1 == result1[0].track
 
         result2 = self.controller.filter({"uri": ["b"], "name": ["x"]}).get()
-        self.assertEqual(t2, result2[0].track)
+        assert t2 == result2[0].track
 
         result3 = self.controller.filter({"uri": ["b"], "name": ["y"]}).get()
-        self.assertEqual(t3, result3[0].track)
+        assert t3 == result3[0].track
 
     def test_filter_by_criteria_that_is_not_present_in_all_elements(self):
         track1 = Track()
@@ -139,16 +139,16 @@ class LocalTracklistProviderTest(unittest.TestCase):
 
         self.controller.add([track1, track2, track3])
         result = self.controller.filter({"uri": ["b"]}).get()
-        self.assertEqual(track2, result[0].track)
+        assert track2 == result[0].track
 
     @populate_tracklist
     def test_clear(self):
         self.controller.clear().get()
-        self.assertEqual(len(self.controller.get_tracks().get()), 0)
+        assert len(self.controller.get_tracks().get()) == 0
 
     def test_clear_empty_playlist(self):
         self.controller.clear().get()
-        self.assertEqual(len(self.controller.get_tracks().get()), 0)
+        assert len(self.controller.get_tracks().get()) == 0
 
     @populate_tracklist
     def test_clear_when_playing(self):
@@ -161,21 +161,21 @@ class LocalTracklistProviderTest(unittest.TestCase):
         self.controller.add([Track(uri="a"), Track(uri="b")])
 
         tracks = self.controller.get_tracks().get()
-        self.assertEqual(len(tracks), 2)
+        assert len(tracks) == 2
 
         self.controller.add([Track(uri="c"), Track(uri="d")])
 
         tracks = self.controller.get_tracks().get()
-        self.assertEqual(len(tracks), 4)
-        self.assertEqual(tracks[0].uri, "a")
-        self.assertEqual(tracks[1].uri, "b")
-        self.assertEqual(tracks[2].uri, "c")
-        self.assertEqual(tracks[3].uri, "d")
+        assert len(tracks) == 4
+        assert tracks[0].uri == "a"
+        assert tracks[1].uri == "b"
+        assert tracks[2].uri == "c"
+        assert tracks[3].uri == "d"
 
     def test_add_does_not_reset_version(self):
         version = self.controller.get_version().get()
         self.controller.add([])
-        self.assertEqual(self.controller.get_version().get(), version)
+        assert self.controller.get_version().get() == version
 
     @populate_tracklist
     def test_add_preserves_playing_state(self):
@@ -202,22 +202,22 @@ class LocalTracklistProviderTest(unittest.TestCase):
 
         added = self.controller.add(tracks[1:2]).get()
         tracks = self.controller.get_tracks().get()
-        self.assertEqual(added[0].track, tracks[1])
+        assert added[0].track == tracks[1]
 
     @populate_tracklist
     def test_move_single(self):
         self.controller.move(0, 0, 2)
 
         tracks = self.controller.get_tracks().get()
-        self.assertEqual(tracks[2], self.tracks[0])
+        assert tracks[2] == self.tracks[0]
 
     @populate_tracklist
     def test_move_group(self):
         self.controller.move(0, 2, 1)
 
         tracks = self.controller.get_tracks().get()
-        self.assertEqual(tracks[1], self.tracks[0])
-        self.assertEqual(tracks[2], self.tracks[1])
+        assert tracks[1] == self.tracks[0]
+        assert tracks[2] == self.tracks[1]
 
     @populate_tracklist
     def test_moving_track_outside_of_playlist(self):
@@ -245,7 +245,7 @@ class LocalTracklistProviderTest(unittest.TestCase):
     def test_tracks_attribute_is_immutable(self):
         tracks1 = self.controller.get_tracks().get()
         tracks2 = self.controller.get_tracks().get()
-        self.assertNotEqual(id(tracks1), id(tracks2))
+        assert id(tracks1) != id(tracks2)
 
     @populate_tracklist
     def test_remove(self):
@@ -253,9 +253,9 @@ class LocalTracklistProviderTest(unittest.TestCase):
         track2 = self.controller.get_tracks().get()[2]
         version = self.controller.get_version().get()
         self.controller.remove({"uri": [track1.uri]})
-        self.assertLess(version, self.controller.get_version().get())
-        self.assertNotIn(track1, self.controller.get_tracks().get())
-        self.assertEqual(track2, self.controller.get_tracks().get()[1])
+        assert version < self.controller.get_version().get()
+        assert track1 not in self.controller.get_tracks().get()
+        assert track2 == self.controller.get_tracks().get()[1]
 
     @populate_tracklist
     def test_removing_track_that_does_not_exist_does_nothing(self):
@@ -275,10 +275,10 @@ class LocalTracklistProviderTest(unittest.TestCase):
         self.controller.remove({"uri": [track0.uri, track2.uri]})
 
         tracks = self.controller.get_tracks().get()
-        self.assertLess(version, self.controller.get_version().get())
-        self.assertNotIn(track0, tracks)
-        self.assertNotIn(track2, tracks)
-        self.assertEqual(track1, tracks[0])
+        assert version < self.controller.get_version().get()
+        assert track0 not in tracks
+        assert track2 not in tracks
+        assert track1 == tracks[0]
 
     @populate_tracklist
     def test_shuffle(self):
@@ -287,8 +287,8 @@ class LocalTracklistProviderTest(unittest.TestCase):
 
         shuffled_tracks = self.controller.get_tracks().get()
 
-        self.assertNotEqual(self.tracks, shuffled_tracks)
-        self.assertEqual(set(self.tracks), set(shuffled_tracks))
+        assert self.tracks != shuffled_tracks
+        assert set(self.tracks) == set(shuffled_tracks)
 
     @populate_tracklist
     def test_shuffle_subset(self):
@@ -297,9 +297,9 @@ class LocalTracklistProviderTest(unittest.TestCase):
 
         shuffled_tracks = self.controller.get_tracks().get()
 
-        self.assertNotEqual(self.tracks, shuffled_tracks)
-        self.assertEqual(self.tracks[0], shuffled_tracks[0])
-        self.assertEqual(set(self.tracks), set(shuffled_tracks))
+        assert self.tracks != shuffled_tracks
+        assert self.tracks[0] == shuffled_tracks[0]
+        assert set(self.tracks) == set(shuffled_tracks)
 
     @populate_tracklist
     def test_shuffle_invalid_subset(self):
@@ -319,28 +319,28 @@ class LocalTracklistProviderTest(unittest.TestCase):
 
         shuffled_tracks = self.controller.get_tracks().get()
 
-        self.assertNotEqual(self.tracks, shuffled_tracks)
-        self.assertEqual(self.tracks[0], shuffled_tracks[0])
-        self.assertEqual(set(self.tracks), set(shuffled_tracks))
+        assert self.tracks != shuffled_tracks
+        assert self.tracks[0] == shuffled_tracks[0]
+        assert set(self.tracks) == set(shuffled_tracks)
 
     @populate_tracklist
     def test_slice_returns_a_subset_of_tracks(self):
         track_slice = self.controller.slice(1, 3).get()
-        self.assertEqual(2, len(track_slice))
-        self.assertEqual(self.tracks[1], track_slice[0].track)
-        self.assertEqual(self.tracks[2], track_slice[1].track)
+        assert 2 == len(track_slice)
+        assert self.tracks[1] == track_slice[0].track
+        assert self.tracks[2] == track_slice[1].track
 
     @populate_tracklist
     def test_slice_returns_empty_list_if_indexes_outside_tracks_list(self):
-        self.assertEqual(0, len(self.controller.slice(7, 8).get()))
-        self.assertEqual(0, len(self.controller.slice(-1, 1).get()))
+        assert 0 == len(self.controller.slice(7, 8).get())
+        assert 0 == len(self.controller.slice((-1), 1).get())
 
     def test_version_does_not_change_when_adding_nothing(self):
         version = self.controller.get_version().get()
         self.controller.add([])
-        self.assertEqual(version, self.controller.get_version().get())
+        assert version == self.controller.get_version().get()
 
     def test_version_increases_when_adding_something(self):
         version = self.controller.get_version().get()
         self.controller.add([Track()])
-        self.assertLess(version, self.controller.get_version().get())
+        assert version < self.controller.get_version().get()

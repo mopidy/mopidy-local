@@ -47,7 +47,7 @@ class LocalLibraryProviderTest(unittest.TestCase):
         self.storage.begin()
         self.storage.add(track)
         self.storage.close()
-        self.assertEqual([track], self.library.lookup(uri).get())
+        assert [track] == self.library.lookup(uri).get()
 
     def test_add_noname_utf8(self):
         name = "Mi\xf0vikudags.mp3"
@@ -56,21 +56,21 @@ class LocalLibraryProviderTest(unittest.TestCase):
         self.storage.begin()
         self.storage.add(track)
         self.storage.close()
-        self.assertEqual([track], self.library.lookup(uri).get())
+        assert [track] == self.library.lookup(uri).get()
 
     def test_clear(self):
         self.storage.begin()
         self.storage.add(Track(uri="local:track:track.mp3"))
         self.storage.close()
         self.storage.clear()
-        self.assertEqual(self.storage.load(), 0)
+        assert self.storage.load() == 0
 
     def test_search_uri(self):
         lib = self.library
         empty = SearchResult(uri="local:search?")
-        self.assertEqual(empty, lib.search(uris=None).get())
-        self.assertEqual(empty, lib.search(uris=[]).get())
-        self.assertEqual(empty, lib.search(uris=["local:"]).get())
-        self.assertEqual(empty, lib.search(uris=["local:directory"]).get())
-        self.assertEqual(empty, lib.search(uris=["local:directory:"]).get())
-        self.assertEqual(empty, lib.search(uris=["foobar:"]).get())
+        assert empty == lib.search(uris=None).get()
+        assert empty == lib.search(uris=[]).get()
+        assert empty == lib.search(uris=["local:"]).get()
+        assert empty == lib.search(uris=["local:directory"]).get()
+        assert empty == lib.search(uris=["local:directory:"]).get()
+        assert empty == lib.search(uris=["foobar:"]).get()
