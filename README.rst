@@ -134,7 +134,7 @@ The following configuration values are available:
   give confusing results if not all artists in the library have proper
   sortnames.
 
-- ``album_art_files``: List of file names to check for when searching
+- ``local/album_art_files``: List of file names to check for when searching
   for external album art. These may contain UNIX shell patterns,
   i.e. ``*``, ``?``, etc.
 
