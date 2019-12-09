@@ -13,10 +13,6 @@ logger = logging.getLogger(__name__)
 MIN_DURATION_MS = 100  # Shortest length of track to include.
 
 
-def _get_library(args, config):
-    return storage.LocalStorageProvider(config)
-
-
 class LocalCommand(commands.Command):
     def __init__(self):
         super().__init__()
@@ -28,9 +24,7 @@ class ClearCommand(commands.Command):
     help = "Clear local media files from the local library."
 
     def run(self, args, config):
-        library = _get_library(args, config)
-        if library is None:
-            return 1
+        library = storage.LocalStorageProvider(config)
 
         prompt = "\nAre you sure you want to clear the library? [y/N] "
 
@@ -76,9 +70,7 @@ class ScanCommand(commands.Command):
             file_ext.lower() for file_ext in excluded_file_extensions
         )
 
-        library = _get_library(args, config)
-        if library is None:
-            return 1
+        library = storage.LocalStorageProvider(config)
 
         file_mtimes, file_errors = path.find_mtimes(
             media_dir, follow=config["local"]["scan_follow_symlinks"]
