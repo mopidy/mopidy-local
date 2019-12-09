@@ -12,13 +12,13 @@ from . import Extension, schema
 logger = logging.getLogger(__name__)
 
 
-def dateref(date):
+def date_ref(date):
     return Ref.directory(
         uri=uritools.uricompose("local", None, "directory", {"date": date}), name=date
     )
 
 
-def genreref(genre):
+def genre_ref(genre):
     return Ref.directory(
         uri=uritools.uricompose("local", None, "directory", {"genre": genre}),
         name=genre,
@@ -151,9 +151,9 @@ class LocalLibraryProvider(backend.LibraryProvider):
         # TODO: handle these in schema (generically)?
         if type == "date":
             format = query.get("format", "%Y-%m-%d")
-            return list(map(dateref, schema.dates(self._connect(), format=format)))
+            return list(map(date_ref, schema.dates(self._connect(), format=format)))
         if type == "genre":
-            return list(map(genreref, schema.list_distinct(self._connect(), "genre")))
+            return list(map(genre_ref, schema.list_distinct(self._connect(), "genre")))
 
         # Fix #38: keep sort order of album tracks; this also applies
         # to composers and performers
