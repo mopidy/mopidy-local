@@ -1,7 +1,7 @@
 import logging
+import os
+import pathlib
 import urllib
-
-from mopidy.internal import path
 
 logger = logging.getLogger(__name__)
 
@@ -15,14 +15,15 @@ def local_uri_to_path(uri, media_dir):
     """Convert local track or directory URI to absolute path."""
     if not uri.startswith("local:directory:") and not uri.startswith("local:track:"):
         raise ValueError("Invalid URI.")
-    file_path = path.uri_to_path(uri.split(":", 2)[2])
+    uri_path = uri.split(":", 2)[2]
+    file_bytes = urllib.parse.unquote_to_bytes(urllib.parse.urlsplit(uri_path).path)
+    file_path = pathlib.Path(os.fsdecode(file_bytes))
     return media_dir / file_path
 
 
-def path_to_file_uri(abspath):
+def path_to_file_uri(path):
     """Convert absolute path to file URI."""
-    # Re-export internal method for use by Mopidy-Local-* extensions.
-    return path.path_to_uri(abspath)
+    return pathlib.Path(os.fsdecode(path)).as_uri()
 
 
 def path_to_local_track_uri(relpath):
