@@ -97,7 +97,7 @@ class LocalTracklistProviderTest(unittest.TestCase):
 
     @populate_tracklist
     def test_filter_by_uri_returns_nothing_for_invalid_uri(self):
-        assert [] == self.controller.filter({"uri": ["foobar"],}).get()
+        assert [] == self.controller.filter({"uri": ["foobar"]}).get()
 
     def test_filter_by_uri_returns_single_match(self):
         t = Track(uri="a")
@@ -115,7 +115,7 @@ class LocalTracklistProviderTest(unittest.TestCase):
 
     def test_filter_by_uri_returns_nothing_if_no_match(self):
         self.controller.playlist = Playlist(tracks=[Track(uri="z"), Track(uri="y")])
-        assert [] == self.controller.filter({"uri": ["a"],}).get()
+        assert [] == self.controller.filter({"uri": ["a"]}).get()
 
     def test_filter_by_multiple_criteria_returns_elements_matching_all(self):
         t1 = Track(uri="a", name="x")
