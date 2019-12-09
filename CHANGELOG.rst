@@ -2,7 +2,7 @@
 Changelog
 *********
 
-v3.0.0a2 (UNRELEASED)
+v3.0.0a2 (2019-12-09)
 =====================
 
 - Require Python >= 3.7. (PR: #10)
