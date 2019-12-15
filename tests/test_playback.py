@@ -741,7 +741,7 @@ class LocalPlaybackProviderTest(unittest.TestCase):
     @populate_tracklist
     def test_seek_when_stopped(self):
         result = self.playback.seek(1000)
-        self.assert_(result, "Seek return value was %s" % result)
+        assert result
 
     @unittest.SkipTest  # tkem doesn't know what's going on here
     @populate_tracklist
@@ -766,7 +766,7 @@ class LocalPlaybackProviderTest(unittest.TestCase):
     def test_seek_when_playing(self):
         self.playback.play().get()
         result = self.playback.seek(self.tracks[0].length - 1000)
-        self.assert_(result, "Seek return value was %s" % result)
+        assert result
 
     @populate_tracklist
     def test_seek_when_playing_updates_position(self):
@@ -781,7 +781,7 @@ class LocalPlaybackProviderTest(unittest.TestCase):
         self.playback.play().get()
         self.playback.pause()
         result = self.playback.seek(self.tracks[0].length - 1000)
-        self.assert_(result, "Seek return value was %s" % result)
+        assert result
         self.assert_state_is(PlaybackState.PAUSED)
 
     @populate_tracklist
@@ -799,7 +799,7 @@ class LocalPlaybackProviderTest(unittest.TestCase):
         # FIXME need to decide return value
         self.playback.play().get()
         result = self.playback.seek(self.tracks[0].length * 100)
-        self.assert_(not result, "Seek return value was %s" % result)
+        assert not result
 
     @populate_tracklist
     def test_seek_beyond_end_of_song_jumps_to_next_song(self):
