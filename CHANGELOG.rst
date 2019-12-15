@@ -2,6 +2,12 @@
 Changelog
 *********
 
+v3.0.0a3 (2019-12-15)
+=====================
+
+- Move parts of the scanner functionality from Mopidy. (#19)
+
+
 v3.0.0a2 (2019-12-09)
 =====================
 
