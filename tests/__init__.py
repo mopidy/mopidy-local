@@ -21,3 +21,20 @@ def populate_tracklist(func):
     wrapper.__name__ = func.__name__
     wrapper.__doc__ = func.__doc__
     return wrapper
+
+
+class IsA:
+    def __init__(self, klass):
+        self.klass = klass
+
+    def __eq__(self, rhs):
+        try:
+            return isinstance(rhs, self.klass)
+        except TypeError:
+            return type(rhs) == type(self.klass)  # noqa
+
+    def __ne__(self, rhs):
+        return not self.__eq__(rhs)
+
+    def __repr__(self):
+        return str(self.klass)

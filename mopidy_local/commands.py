@@ -6,7 +6,7 @@ from mopidy import commands, exceptions
 from mopidy.audio import scan, tags
 from mopidy.internal import path
 
-from mopidy_local import storage, translator
+from mopidy_local import mtimes, storage, translator
 
 logger = logging.getLogger(__name__)
 
@@ -72,7 +72,7 @@ class ScanCommand(commands.Command):
 
         library = storage.LocalStorageProvider(config)
 
-        file_mtimes, file_errors = path.find_mtimes(
+        file_mtimes, file_errors = mtimes.find_mtimes(
             media_dir, follow=config["local"]["scan_follow_symlinks"]
         )
 
