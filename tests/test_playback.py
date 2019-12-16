@@ -70,27 +70,27 @@ class LocalPlaybackProviderTest(unittest.TestCase):
         assert self.playback.get_current_track().get() != track
 
     def assert_current_track_index_is(self, index):
-        tl_track = self.playback.get_current_tl_track().get()
-        assert self.tracklist.index(tl_track).get() == index
+        assert self.tracklist.index().get() == index
 
     def assert_next_tl_track_is(self, tl_track):
-        assert self.tracklist.get_next_tlid().get() == (tl_track and tl_track.tlid)
+        next_tlid = self.tracklist.get_next_tlid().get()
+        assert next_tlid == (tl_track and tl_track.tlid)
 
     def assert_next_tl_track_is_not(self, tl_track):
-        assert self.tracklist.get_next_tlid().get() != (tl_track and tl_track.tlid)
+        next_tlid = self.tracklist.get_next_tlid().get()
+        assert next_tlid != (tl_track and tl_track.tlid)
 
     def assert_previous_tl_track_is(self, tl_track):
-        current = self.playback.get_current_tl_track().get()
-        previous = self.tracklist.previous_track(current).get()
-        assert previous == tl_track
+        previous_tlid = self.tracklist.get_previous_tlid().get()
+        assert previous_tlid == (tl_track and tl_track.tlid)
 
     def assert_eot_tl_track_is(self, tl_track):
-        current = self.playback.get_current_tl_track().get()
-        assert self.tracklist.eot_track(current).get() == tl_track
+        eot_tlid = self.tracklist.get_eot_tlid().get()
+        assert eot_tlid == (tl_track and tl_track.tlid)
 
     def assert_eot_tl_track_is_not(self, tl_track):
-        current = self.playback.get_current_tl_track().get()
-        assert self.tracklist.eot_track(current).get() != tl_track
+        eot_tlid = self.tracklist.get_eot_tlid().get()
+        assert eot_tlid != (tl_track and tl_track.tlid)
 
     def test_uri_scheme(self):
         assert "file" not in self.core.get_uri_schemes().get()
