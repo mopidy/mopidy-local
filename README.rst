@@ -24,11 +24,6 @@ Table of contents
 
 - `Maintainer wanted`_
 - Installation_
-
-  - `Debian/Ubuntu/Raspbian`_
-  - `Arch Linux`_
-  - `Other distributions`_
-
 - Configuration_
 - Usage_
 
@@ -63,35 +58,11 @@ If you want to be the maintainer of Mopidy-Local, please:
 Installation
 ============
 
-Debian/Ubuntu/Raspbian
-----------------------
+Install by running::
 
-Install the ``mopidy-local`` package::
+    sudo python3 -m pip install Mopidy-Local
 
-    sudo apt install mopidy-local
-
-If you want the latest version of Mopidy-Local, add `apt.mopidy.com`_ as an
-APT archive on your system.
-
-.. _apt.mopidy.com: https://apt.mopidy.com/
-
-Arch Linux
-----------
-
-Install the ``mopidy-local`` package from `AUR`_::
-
-    yay -S mopidy-local
-
-.. _AUR: https://aur.archlinux.org/packages/mopidy-local/
-
-Other distributions
--------------------
-
-If Mopidy-Local isn't packages for your Linux distribution yet, install the package from `PyPI`_::
-
-    pip install Mopidy-Local
-
-.. _PyPI: https://pypi.org/project/Mopidy-Local/
+See https://mopidy.com/ext/local/ for alternative installation methods.
 
 
 Configuration
