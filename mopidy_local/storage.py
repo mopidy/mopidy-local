@@ -31,18 +31,6 @@ def get_image_size_gif(data):
     return struct.unpack("<HH", data[6:10])
 
 
-def model_uri(type, model):
-    # only use valid mbids; TODO: use regex for that?
-    if model.musicbrainz_id and len(model.musicbrainz_id) == 36:
-        return f"local:{type}:mbid:{model.musicbrainz_id}"
-    elif type == "album":
-        # ignore num_tracks for multi-disc albums
-        digest = hashlib.md5(str(model.replace(num_tracks=None)).encode())
-    else:
-        digest = hashlib.md5(str(model).encode())
-    return "local:{}:md5:{}".format(type, digest.hexdigest())
-
-
 def get_image_size_jpeg(data):
     # original source: http://goo.gl/6bo5Vx
     index = 0
@@ -149,14 +137,14 @@ class LocalStorageProvider:
         if not model.name:
             raise ValueError("Empty artist name")
         if not model.uri:
-            model = model.replace(uri=model_uri("artist", model))
+            model = model.replace(uri=self._model_uri("artist", model))
         return model
 
     def _validate_album(self, model):
         if not model.name:
             raise ValueError("Empty album name")
         if not model.uri:
-            model = model.replace(uri=model_uri("album", model))
+            model = model.replace(uri=self._model_uri("album", model))
         return model.replace(artists=list(map(self._validate_artist, model.artists)))
 
     def _validate_track(self, model):
@@ -237,3 +225,14 @@ class LocalStorageProvider:
             with open(dest, "wb") as fh:
                 fh.write(data)
         return uritools.urijoin(self._base_uri, name)
+
+    def _model_uri(self, type, model):
+        # only use valid mbids; TODO: use regex for that?
+        if model.musicbrainz_id and len(model.musicbrainz_id) == 36 and self._config["use_%s_mbid_uri" % type]:
+            return f"local:{type}:mbid:{model.musicbrainz_id}"
+        elif type == "album":
+            # ignore num_tracks for multi-disc albums
+            digest = hashlib.md5(str(model.replace(num_tracks=None)).encode())
+        else:
+            digest = hashlib.md5(str(model).encode())
+        return "local:{}:md5:{}".format(type, digest.hexdigest())

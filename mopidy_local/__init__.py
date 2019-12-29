@@ -30,6 +30,8 @@ class Extension(ext.Extension):
         schema["directories"] = config.List()
         schema["timeout"] = config.Integer(optional=True, minimum=1)
         schema["use_artist_sortname"] = config.Boolean()
+        schema["use_album_mbid_uri"] = config.Boolean()
+        schema["use_artist_mbid_uri"] = config.Boolean()
         schema["album_art_files"] = config.List(optional=True)
         return schema
 

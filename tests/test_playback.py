@@ -21,6 +21,8 @@ class LocalPlaybackProviderTest(unittest.TestCase):
             "directories": [],
             "timeout": 10,
             "use_artist_sortname": False,
+            "use_artist_mbid_uri": True,
+            "use_album_mbid_uri": True,
             "album_art_files": [],
         },
     }

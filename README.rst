@@ -104,6 +104,13 @@ The following configuration values are available:
   give confusing results if not all artists in the library have proper
   sortnames.
 
+- ``local/use_artist_mbid_uri``: Whether to use the MusicBrainz ID tag
+  to generate artist URIs. Enabled by default but can cause some albums
+  with multiple artists to be incorrectly sorted.
+
+- ``local/use_album_mbid_uri``: Whether to use the MusicBrainz ID tag
+    to generate album URIs. Enabled by default and shouldn't cause issues.
+
 - ``local/album_art_files``: List of file names to check for when searching
   for external album art. These may contain UNIX shell patterns,
   i.e. ``*``, ``?``, etc.
