@@ -228,8 +228,8 @@ class LocalStorageProvider:
 
     def _model_uri(self, type, model):
         # only use valid mbids; TODO: use regex for that?
-        if model.musicbrainz_id and len(model.musicbrainz_id) == 36
-           and self._config["use_%s_mbid_uri" % type]:
+        if (model.musicbrainz_id and len(model.musicbrainz_id) == 36 and
+           self._config["use_%s_mbid_uri" % type]):
             return f"local:{type}:mbid:{model.musicbrainz_id}"
         elif type == "album":
             # ignore num_tracks for multi-disc albums
