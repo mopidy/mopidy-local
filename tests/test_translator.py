@@ -1,3 +1,5 @@
+import pathlib
+
 import pytest
 from mopidy_local import translator
 
@@ -80,6 +82,7 @@ def test_local_uri_to_path_errors(uri):
         (b"/foo", "file:///foo"),
         ("/æøå", "file:///%C3%A6%C3%B8%C3%A5"),
         (b"/\x00\x01\x02", "file:///%00%01%02"),
+        (pathlib.Path("/æøå"), "file:///%C3%A6%C3%B8%C3%A5"),
     ],
 )
 def test_path_to_file_uri(path, uri):
@@ -93,6 +96,7 @@ def test_path_to_file_uri(path, uri):
         (b"foo", "local:track:foo"),
         ("æøå", "local:track:%C3%A6%C3%B8%C3%A5"),
         (b"\x00\x01\x02", "local:track:%00%01%02"),
+        (pathlib.Path("æøå"), "local:track:%C3%A6%C3%B8%C3%A5"),
     ],
 )
 def test_path_to_local_track_uri(path, uri):
@@ -108,6 +112,7 @@ def test_path_to_local_track_uri(path, uri):
         (b"foo", "local:directory:foo"),
         ("æøå", "local:directory:%C3%A6%C3%B8%C3%A5"),
         (b"\x00\x01\x02", "local:directory:%00%01%02"),
+        (pathlib.Path("æøå"), "local:track:%C3%A6%C3%B8%C3%A5"),
     ],
 )
 def test_path_to_local_directory_uri(path, uri):
