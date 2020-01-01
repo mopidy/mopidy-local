@@ -71,16 +71,16 @@ class ScanCommand(commands.Command):
 
         library = storage.LocalStorageProvider(config)
 
+        logger.info(f"Finding files in {media_dir.as_uri()} ...")
         file_mtimes, file_errors = mtimes.find_mtimes(
             media_dir, follow=config["local"]["scan_follow_symlinks"]
         )
-
-        logger.info(f"Found {len(file_mtimes)} files in local/media_dir")
+        logger.info(f"Found {len(file_mtimes)} files in {media_dir.as_uri()}")
 
         if file_errors:
             logger.warning(
                 f"Encountered {len(file_errors)} errors "
-                f"while scanning local/media_dir"
+                f"while scanning {media_dir.as_uri()}"
             )
         for name in file_errors:
             logger.debug(f"Scan error {file_errors[name]!r} for {name!r}")
@@ -172,10 +172,12 @@ class _Progress:
     def log(self):
         duration = time.time() - self.start
         if self.count >= self.total or not self.count:
-            logger.info(f"Scanned {self.count} of {self.total} files in {duration}s.")
+            logger.info(
+                f"Scanned {self.count} of {self.total} files in {duration:.3f}s."
+            )
         else:
             remainder = duration / self.count * (self.total - self.count)
             logger.info(
                 f"Scanned {self.count} of {self.total} files "
-                f"in {duration}s, ~{remainder}s left"
+                f"in {duration:.3f}s, ~{remainder:.0f}s left"
             )
