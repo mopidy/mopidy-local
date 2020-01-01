@@ -25,17 +25,17 @@ class ClearCommand(commands.Command):
     def run(self, args, config):
         library = storage.LocalStorageProvider(config)
 
-        prompt = "\nAre you sure you want to clear the library? [y/N] "
+        prompt = "Are you sure you want to clear the library? [y/N] "
 
         if input(prompt).lower() != "y":
-            print("Clearing library aborted.")
+            print("Clearing library aborted")
             return 0
 
         if library.clear():
-            print("Library successfully cleared.")
+            print("Library successfully cleared")
             return 0
 
-        print("Unable to clear library.")
+        print("Unable to clear library")
         return 1
 
 
@@ -75,17 +75,18 @@ class ScanCommand(commands.Command):
             media_dir, follow=config["local"]["scan_follow_symlinks"]
         )
 
-        logger.info(f"Found {len(file_mtimes)} files in media_dir.")
+        logger.info(f"Found {len(file_mtimes)} files in local/media_dir")
 
         if file_errors:
             logger.warning(
-                f"Encountered {len(file_errors)} errors while scanning media_dir."
+                f"Encountered {len(file_errors)} errors "
+                f"while scanning local/media_dir"
             )
         for name in file_errors:
             logger.debug(f"Scan error {file_errors[name]!r} for {name!r}")
 
         num_tracks = library.load()
-        logger.info(f"Checking {num_tracks} tracks from library.")
+        logger.info(f"Checking {num_tracks} tracks from library")
 
         uris_to_update = set()
         uris_to_remove = set()
@@ -95,13 +96,13 @@ class ScanCommand(commands.Command):
             absolute_path = translator.local_uri_to_path(track.uri, media_dir)
             mtime = file_mtimes.get(absolute_path)
             if mtime is None:
-                logger.debug(f"Removing {track.uri}: File not found.")
+                logger.debug(f"Removing {track.uri}: File not found")
                 uris_to_remove.add(track.uri)
             elif mtime > track.last_modified or args.force:
                 uris_to_update.add(track.uri)
             uris_in_library.add(track.uri)
 
-        logger.info(f"Removing {len(uris_to_remove)} missing tracks.")
+        logger.info(f"Removing {len(uris_to_remove)} missing tracks")
         for local_uri in uris_to_remove:
             library.remove(local_uri)
 
@@ -110,13 +111,13 @@ class ScanCommand(commands.Command):
             local_uri = translator.path_to_local_track_uri(relative_path)
 
             if any(p.startswith(".") for p in relative_path.parts):
-                logger.debug(f"Skipped {local_uri}: Hidden directory/file.")
+                logger.debug(f"Skipped {local_uri}: Hidden directory/file")
             elif relative_path.suffix.lower() in excluded_file_extensions:
-                logger.debug(f"Skipped {local_uri}: File extension excluded.")
+                logger.debug(f"Skipped {local_uri}: File extension excluded")
             elif local_uri not in uris_in_library:
                 uris_to_update.add(local_uri)
 
-        logger.info(f"Found {len(uris_to_update)} tracks which need to be updated.")
+        logger.info(f"Found {len(uris_to_update)} tracks which need to be updated")
         logger.info("Scanning...")
 
         uris_to_update = sorted(uris_to_update, key=lambda v: v.lower())
@@ -131,7 +132,7 @@ class ScanCommand(commands.Command):
                 file_uri = translator.path_to_file_uri(media_dir / relative_path)
                 result = scanner.scan(file_uri)
                 if not result.playable:
-                    logger.warning(f"Failed {local_uri}: No audio found in file.")
+                    logger.warning(f"Failed {local_uri}: No audio found in file")
                 elif result.duration < MIN_DURATION_MS:
                     logger.warning(
                         f"Failed {local_uri}: Track shorter than {MIN_DURATION_MS}ms"
@@ -149,11 +150,11 @@ class ScanCommand(commands.Command):
             if progress.increment():
                 progress.log()
                 if library.flush():
-                    logger.debug("Progress flushed.")
+                    logger.debug("Progress flushed")
 
         progress.log()
         library.close()
-        logger.info("Done scanning.")
+        logger.info("Done scanning")
         return 0
 
 
@@ -176,5 +177,5 @@ class _Progress:
             remainder = duration / self.count * (self.total - self.count)
             logger.info(
                 f"Scanned {self.count} of {self.total} files "
-                f"in {duration}s, ~{remainder}s left."
+                f"in {duration}s, ~{remainder}s left"
             )
