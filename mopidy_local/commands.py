@@ -1,10 +1,9 @@
 import logging
-import os
+import pathlib
 import time
 
 from mopidy import commands, exceptions
 from mopidy.audio import scan, tags
-from mopidy.internal import path
 
 from mopidy_local import mtimes, storage, translator
 
@@ -62,7 +61,7 @@ class ScanCommand(commands.Command):
         )
 
     def run(self, args, config):
-        media_dir = config["local"]["media_dir"]
+        media_dir = pathlib.Path(config["local"]["media_dir"]).resolve()
         scan_timeout = config["local"]["scan_timeout"]
         flush_threshold = config["local"]["scan_flush_threshold"]
         excluded_file_extensions = config["local"]["excluded_file_extensions"]
@@ -107,12 +106,12 @@ class ScanCommand(commands.Command):
             library.remove(local_uri)
 
         for absolute_path in file_mtimes:
-            relative_path = os.path.relpath(absolute_path, media_dir)
+            relative_path = absolute_path.relative_to(media_dir)
             local_uri = translator.path_to_local_track_uri(relative_path)
 
-            if "/." in relative_path or relative_path.startswith("."):
+            if any(p.startswith(".") for p in relative_path.parts):
                 logger.debug("Skipped %s: Hidden directory/file.", local_uri)
-            elif relative_path.lower().endswith(excluded_file_extensions):
+            elif relative_path.suffix.lower() in excluded_file_extensions:
                 logger.debug("Skipped %s: File extension excluded.", local_uri)
             elif local_uri not in uris_in_library:
                 uris_to_update.add(local_uri)
@@ -129,7 +128,7 @@ class ScanCommand(commands.Command):
         for local_uri in uris_to_update:
             try:
                 relative_path = translator.local_uri_to_path(local_uri, media_dir)
-                file_uri = path.path_to_uri(media_dir / relative_path)
+                file_uri = translator.path_to_file_uri(media_dir / relative_path)
                 result = scanner.scan(file_uri)
                 if not result.playable:
                     logger.warning("Failed %s: No audio found in file.", local_uri)
