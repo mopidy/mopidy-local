@@ -93,8 +93,8 @@ class ScanCommand(commands.Command):
         uris_in_library = set()
 
         for track in library.begin():
-            abspath = translator.local_uri_to_path(track.uri, media_dir)
-            mtime = file_mtimes.get(abspath)
+            absolute_path = translator.local_uri_to_path(track.uri, media_dir)
+            mtime = file_mtimes.get(absolute_path)
             if mtime is None:
                 logger.debug("Missing file %s", track.uri)
                 uris_to_remove.add(track.uri)
@@ -103,19 +103,19 @@ class ScanCommand(commands.Command):
             uris_in_library.add(track.uri)
 
         logger.info("Removing %d missing tracks.", len(uris_to_remove))
-        for uri in uris_to_remove:
-            library.remove(uri)
+        for local_uri in uris_to_remove:
+            library.remove(local_uri)
 
-        for abspath in file_mtimes:
-            relpath = os.path.relpath(abspath, media_dir)
-            uri = translator.path_to_local_track_uri(relpath)
+        for absolute_path in file_mtimes:
+            relative_path = os.path.relpath(absolute_path, media_dir)
+            local_uri = translator.path_to_local_track_uri(relative_path)
 
-            if "/." in relpath or relpath.startswith("."):
-                logger.debug("Skipped %s: Hidden directory/file.", uri)
-            elif relpath.lower().endswith(excluded_file_extensions):
-                logger.debug("Skipped %s: File extension excluded.", uri)
-            elif uri not in uris_in_library:
-                uris_to_update.add(uri)
+            if "/." in relative_path or relative_path.startswith("."):
+                logger.debug("Skipped %s: Hidden directory/file.", local_uri)
+            elif relative_path.lower().endswith(excluded_file_extensions):
+                logger.debug("Skipped %s: File extension excluded.", local_uri)
+            elif local_uri not in uris_in_library:
+                uris_to_update.add(local_uri)
 
         logger.info("Found %d tracks which need to be updated.", len(uris_to_update))
         logger.info("Scanning...")
@@ -126,26 +126,26 @@ class ScanCommand(commands.Command):
         scanner = scan.Scanner(scan_timeout)
         progress = _Progress(flush_threshold, len(uris_to_update))
 
-        for uri in uris_to_update:
+        for local_uri in uris_to_update:
             try:
-                relpath = translator.local_uri_to_path(uri, media_dir)
-                file_uri = path.path_to_uri(media_dir / relpath)
+                relative_path = translator.local_uri_to_path(local_uri, media_dir)
+                file_uri = path.path_to_uri(media_dir / relative_path)
                 result = scanner.scan(file_uri)
                 if not result.playable:
-                    logger.warning("Failed %s: No audio found in file.", uri)
+                    logger.warning("Failed %s: No audio found in file.", local_uri)
                 elif result.duration < MIN_DURATION_MS:
                     logger.warning(
-                        "Failed %s: Track shorter than %dms", uri, MIN_DURATION_MS
+                        "Failed %s: Track shorter than %dms", local_uri, MIN_DURATION_MS
                     )
                 else:
-                    mtime = file_mtimes.get(media_dir / relpath)
+                    mtime = file_mtimes.get(media_dir / relative_path)
                     track = tags.convert_tags_to_track(result.tags).replace(
-                        uri=uri, length=result.duration, last_modified=mtime
+                        uri=local_uri, length=result.duration, last_modified=mtime
                     )
                     library.add(track, result.tags, result.duration)
                     logger.debug("Added %s", track.uri)
             except exceptions.ScannerError as error:
-                logger.warning("Failed %s: %s", uri, error)
+                logger.warning("Failed %s: %s", local_uri, error)
 
             if progress.increment():
                 progress.log()
