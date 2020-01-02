@@ -186,8 +186,9 @@ class ScanCommand(commands.Command):
                         f"Track shorter than {MIN_DURATION_MS}ms"
                     )
                 else:
-                    relative_path = absolute_path.relative_to(media_dir)
-                    local_uri = translator.path_to_local_track_uri(relative_path)
+                    local_uri = translator.path_to_local_track_uri(
+                        absolute_path, media_dir
+                    )
                     mtime = file_mtimes.get(absolute_path)
                     track = tags.convert_tags_to_track(result.tags).replace(
                         uri=local_uri, length=result.duration, last_modified=mtime

@@ -92,13 +92,16 @@ def test_path_to_file_uri(path, uri):
     "path,uri",
     [
         (pathlib.Path("foo"), "local:track:foo"),
+        (pathlib.Path("/home/alice/Music/foo"), "local:track:foo"),
         (pathlib.Path("æøå"), "local:track:%C3%A6%C3%B8%C3%A5"),
         (pathlib.Path(os.fsdecode(b"\x00\x01\x02")), "local:track:%00%01%02"),
         (pathlib.Path("æøå"), "local:track:%C3%A6%C3%B8%C3%A5"),
     ],
 )
 def test_path_to_local_track_uri(path, uri):
-    result = translator.path_to_local_track_uri(path)
+    media_dir = pathlib.Path("/home/alice/Music")
+
+    result = translator.path_to_local_track_uri(path, media_dir)
 
     assert isinstance(result, str)
     assert result == uri

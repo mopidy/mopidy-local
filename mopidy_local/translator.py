@@ -29,11 +29,14 @@ def local_uri_to_path(local_uri: str, media_dir: Path) -> Path:
 
 def path_to_file_uri(path: Union[str, bytes, Path]) -> str:
     """Convert absolute path to file URI."""
-    return Path(os.fsdecode(path)).as_uri()
+    ppath = Path(os.fsdecode(path))
+    assert ppath.is_absolute()
+    return ppath.as_uri()
 
 
-def path_to_local_track_uri(relpath: Union[str, bytes, Path]) -> str:
-    """Convert path relative to :confval:`local/media_dir` to local track
-    URI."""
-    bytes_path = os.fsencode(relpath)
-    return "local:track:%s" % urllib.parse.quote(bytes_path)
+def path_to_local_track_uri(path: Union[str, bytes, Path], media_dir: Path) -> str:
+    """Convert path to local track URI."""
+    ppath = Path(os.fsdecode(path))
+    if ppath.is_absolute():
+        ppath = ppath.relative_to(media_dir)
+    return "local:track:%s" % urllib.parse.quote(bytes(ppath))

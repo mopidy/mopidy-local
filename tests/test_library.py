@@ -1,3 +1,4 @@
+import pathlib
 import os
 import unittest
 
@@ -42,7 +43,7 @@ class LocalLibraryProviderTest(unittest.TestCase):
 
     def test_add_noname_ascii(self):
         name = "Test.mp3"
-        uri = translator.path_to_local_track_uri(name)
+        uri = translator.path_to_local_track_uri(name, pathlib.Path("/media/dir"))
         track = Track(name=name, uri=uri)
         self.storage.begin()
         self.storage.add(track)
@@ -51,7 +52,9 @@ class LocalLibraryProviderTest(unittest.TestCase):
 
     def test_add_noname_utf8(self):
         name = "Mi\xf0vikudags.mp3"
-        uri = translator.path_to_local_track_uri(name.encode())
+        uri = translator.path_to_local_track_uri(
+            name.encode(), pathlib.Path("/media/dir")
+        )
         track = Track(name=name, uri=uri)
         self.storage.begin()
         self.storage.add(track)
