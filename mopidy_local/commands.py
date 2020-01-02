@@ -150,11 +150,12 @@ class ScanCommand(commands.Command):
         for absolute_path in file_mtimes:
             relative_path = absolute_path.relative_to(media_dir)
             local_uri = translator.path_to_local_track_uri(relative_path)
+            file_uri = absolute_path.as_uri()
 
             if any(p.startswith(".") for p in relative_path.parts):
-                logger.debug(f"Skipped {local_uri}: Hidden directory/file")
+                logger.debug(f"Skipped {file_uri}: Hidden directory/file")
             elif relative_path.suffix.lower() in excluded_file_exts:
-                logger.debug(f"Skipped {local_uri}: File extension excluded")
+                logger.debug(f"Skipped {file_uri}: File extension excluded")
             elif local_uri not in uris_in_library:
                 uris_to_update.add(local_uri)
 
@@ -175,13 +176,18 @@ class ScanCommand(commands.Command):
         for local_uri in uris:
             try:
                 relative_path = translator.local_uri_to_path(local_uri, media_dir)
-                file_uri = translator.path_to_file_uri(media_dir / relative_path)
+                absolute_path = (media_dir / relative_path).resolve()
+                file_uri = absolute_path.as_uri()
+
                 result = scanner.scan(file_uri)
                 if not result.playable:
-                    logger.warning(f"Failed {local_uri}: No audio found in file")
+                    logger.warning(
+                        f"Failed scanning {file_uri}: No audio found in file"
+                    )
                 elif result.duration < MIN_DURATION_MS:
                     logger.warning(
-                        f"Failed {local_uri}: Track shorter than {MIN_DURATION_MS}ms"
+                        f"Failed scanning {file_uri}: "
+                        f"Track shorter than {MIN_DURATION_MS}ms"
                     )
                 else:
                     mtime = file_mtimes.get(media_dir / relative_path)
@@ -191,7 +197,7 @@ class ScanCommand(commands.Command):
                     library.add(track, result.tags, result.duration)
                     logger.debug(f"Added {track.uri}")
             except exceptions.ScannerError as error:
-                logger.warning(f"Failed {local_uri}: {error}")
+                logger.warning(f"Failed scanning {file_uri}: {error}")
 
             if progress.increment():
                 progress.log()
