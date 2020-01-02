@@ -1,9 +1,8 @@
+import os
 import pathlib
 
 import pytest
 from mopidy_local import translator
-
-pytest.skip("skipping translator tests for now", allow_module_level=True)
 
 
 @pytest.mark.parametrize(
@@ -26,14 +25,14 @@ pytest.skip("skipping translator tests for now", allow_module_level=True)
     ],
 )
 def test_local_uri_to_file_uri(local_uri, file_uri):
-    media_dir = "/home/alice/Music"
+    media_dir = pathlib.Path("/home/alice/Music")
 
     assert translator.local_uri_to_file_uri(local_uri, media_dir) == file_uri
 
 
 @pytest.mark.parametrize("uri", ["A/B", "local:foo:A/B"])
 def test_local_uri_to_file_uri_errors(uri):
-    media_dir = "/home/alice/Music"
+    media_dir = pathlib.Path("/home/alice/Music")
 
     with pytest.raises(ValueError):
         translator.local_uri_to_file_uri(uri, media_dir)
@@ -59,17 +58,17 @@ def test_local_uri_to_file_uri_errors(uri):
     ],
 )
 def test_local_uri_to_path(uri, path):
-    media_dir = "/home/alice/Music"
+    media_dir = pathlib.Path("/home/alice/Music")
 
-    assert translator.local_uri_to_path(uri, media_dir) == path
+    result = translator.local_uri_to_path(uri, media_dir)
 
-    # Legacy version to keep old versions of Mopidy-Local-Sqlite working
-    assert translator.local_track_uri_to_path(uri, media_dir) == path
+    assert isinstance(result, pathlib.Path)
+    assert bytes(result) == path
 
 
 @pytest.mark.parametrize("uri", ["A/B", "local:foo:A/B"])
 def test_local_uri_to_path_errors(uri):
-    media_dir = "/home/alice/Music"
+    media_dir = pathlib.Path("/home/alice/Music")
 
     with pytest.raises(ValueError):
         translator.local_uri_to_path(uri, media_dir)
@@ -92,14 +91,14 @@ def test_path_to_file_uri(path, uri):
 @pytest.mark.parametrize(
     "path,uri",
     [
-        ("foo", "local:track:foo"),
-        (b"foo", "local:track:foo"),
-        ("æøå", "local:track:%C3%A6%C3%B8%C3%A5"),
-        (b"\x00\x01\x02", "local:track:%00%01%02"),
+        (pathlib.Path("foo"), "local:track:foo"),
+        (pathlib.Path("æøå"), "local:track:%C3%A6%C3%B8%C3%A5"),
+        (pathlib.Path(os.fsdecode(b"\x00\x01\x02")), "local:track:%00%01%02"),
         (pathlib.Path("æøå"), "local:track:%C3%A6%C3%B8%C3%A5"),
     ],
 )
 def test_path_to_local_track_uri(path, uri):
     result = translator.path_to_local_track_uri(path)
+
     assert isinstance(result, str)
     assert result == uri
