@@ -8,7 +8,8 @@ logger = logging.getLogger(__name__)
 
 def local_uri_to_file_uri(local_uri, media_dir):
     """Convert local track or directory URI to file URI."""
-    return path_to_file_uri(local_uri_to_path(local_uri, media_dir))
+    path = local_uri_to_path(local_uri, media_dir)
+    return path.as_uri()
 
 
 def local_uri_to_path(local_uri, media_dir):
