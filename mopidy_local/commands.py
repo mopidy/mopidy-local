@@ -69,18 +69,18 @@ class ScanCommand(commands.Command):
             follow_symlinks=config["local"]["scan_follow_symlinks"],
         )
 
-        uris_to_update, uris_in_library = self._check_tracks_in_library(
+        files_to_update, files_in_library = self._check_tracks_in_library(
             media_dir=media_dir,
             file_mtimes=file_mtimes,
             library=library,
             force_rescan=args.force,
         )
 
-        uris_to_update.update(
+        files_to_update.update(
             self._find_files_to_scan(
                 media_dir=media_dir,
                 file_mtimes=file_mtimes,
-                uris_in_library=uris_in_library,
+                files_in_library=files_in_library,
                 excluded_file_exts=[
                     file_ext.lower()
                     for file_ext in config["local"]["excluded_file_extensions"]
@@ -91,7 +91,7 @@ class ScanCommand(commands.Command):
         self._scan_metadata(
             media_dir=media_dir,
             file_mtimes=file_mtimes,
-            uris=uris_to_update,
+            files=files_to_update,
             library=library,
             timeout=config["local"]["scan_timeout"],
             flush_threshold=config["local"]["scan_flush_threshold"],
@@ -122,9 +122,9 @@ class ScanCommand(commands.Command):
         num_tracks = library.load()
         logger.info(f"Checking {num_tracks} tracks from library")
 
-        uris_to_update = set()
         uris_to_remove = set()
-        uris_in_library = set()
+        files_to_update = set()
+        files_in_library = set()
 
         for track in library.begin():
             absolute_path = translator.local_uri_to_path(track.uri, media_dir)
@@ -133,53 +133,49 @@ class ScanCommand(commands.Command):
                 logger.debug(f"Removing {track.uri}: File not found")
                 uris_to_remove.add(track.uri)
             elif mtime > track.last_modified or force_rescan:
-                uris_to_update.add(track.uri)
-            uris_in_library.add(track.uri)
+                files_to_update.add(absolute_path)
+            files_in_library.add(absolute_path)
 
         logger.info(f"Removing {len(uris_to_remove)} missing tracks")
         for local_uri in uris_to_remove:
             library.remove(local_uri)
 
-        return uris_to_update, uris_in_library
+        return files_to_update, files_in_library
 
     def _find_files_to_scan(
-        self, *, media_dir, file_mtimes, uris_in_library, excluded_file_exts
+        self, *, media_dir, file_mtimes, files_in_library, excluded_file_exts
     ):
-        uris_to_update = set()
+        files_to_update = set()
 
         for absolute_path in file_mtimes:
             relative_path = absolute_path.relative_to(media_dir)
-            local_uri = translator.path_to_local_track_uri(relative_path)
             file_uri = absolute_path.as_uri()
 
             if any(p.startswith(".") for p in relative_path.parts):
                 logger.debug(f"Skipped {file_uri}: Hidden directory/file")
             elif relative_path.suffix.lower() in excluded_file_exts:
                 logger.debug(f"Skipped {file_uri}: File extension excluded")
-            elif local_uri not in uris_in_library:
-                uris_to_update.add(local_uri)
+            elif absolute_path not in files_in_library:
+                files_to_update.add(absolute_path)
 
-        logger.info(f"Found {len(uris_to_update)} tracks which need to be updated")
-        return uris_to_update
+        logger.info(f"Found {len(files_to_update)} tracks which need to be updated")
+        return files_to_update
 
     def _scan_metadata(
-        self, *, media_dir, file_mtimes, uris, library, timeout, flush_threshold, limit
+        self, *, media_dir, file_mtimes, files, library, timeout, flush_threshold, limit
     ):
         logger.info("Scanning...")
 
-        uris = sorted(uris, key=lambda v: v.lower())
-        uris = uris[:limit]
+        files = sorted(files)[:limit]
 
         scanner = scan.Scanner(timeout)
-        progress = _ScanProgress(batch_size=flush_threshold, total=len(uris))
+        progress = _ScanProgress(batch_size=flush_threshold, total=len(files))
 
-        for local_uri in uris:
+        for absolute_path in files:
             try:
-                relative_path = translator.local_uri_to_path(local_uri, media_dir)
-                absolute_path = (media_dir / relative_path).resolve()
                 file_uri = absolute_path.as_uri()
-
                 result = scanner.scan(file_uri)
+
                 if not result.playable:
                     logger.warning(
                         f"Failed scanning {file_uri}: No audio found in file"
@@ -190,7 +186,9 @@ class ScanCommand(commands.Command):
                         f"Track shorter than {MIN_DURATION_MS}ms"
                     )
                 else:
-                    mtime = file_mtimes.get(media_dir / relative_path)
+                    relative_path = absolute_path.relative_to(media_dir)
+                    local_uri = translator.path_to_local_track_uri(relative_path)
+                    mtime = file_mtimes.get(absolute_path)
                     track = tags.convert_tags_to_track(result.tags).replace(
                         uri=local_uri, length=result.duration, last_modified=mtime
                     )
