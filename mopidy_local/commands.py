@@ -109,10 +109,10 @@ class ScanCommand(commands.Command):
         if file_errors:
             logger.warning(
                 f"Encountered {len(file_errors)} errors "
-                f"while scanning {media_dir.as_uri()}"
+                f"while finding files in {media_dir.as_uri()}"
             )
-        for name in file_errors:
-            logger.debug(f"Scan error {file_errors[name]!r} for {name!r}")
+        for path in file_errors:
+            logger.warning(f"Error for {path.as_uri()}: {file_errors[path]}")
 
         return file_mtimes
 
