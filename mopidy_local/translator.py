@@ -32,8 +32,3 @@ def path_to_local_track_uri(relpath):
     """Convert path relative to :confval:`local/media_dir` to local track
     URI."""
     return "local:track:%s" % urllib.parse.quote(os.fsencode(relpath))
-
-
-def path_to_local_directory_uri(relpath):
-    """Convert path relative to :confval:`local/media_dir` to directory URI."""
-    return "local:directory:%s" % urllib.parse.quote(os.fsencode(relpath))
