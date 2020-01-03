@@ -306,7 +306,7 @@ def insert_artists(c, artists):
     if not artists:
         return None
     if len(artists) != 1:
-        logger.warn("Ignoring multiple artists: %r", artists)
+        logger.warning("Ignoring multiple artists: %r", artists)
     artist = next(iter(artists))
     _insert(
         c,

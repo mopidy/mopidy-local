@@ -91,12 +91,12 @@ class LocalStorageProvider:
                 images = self._extract_images(track.uri, tags)
                 logger.debug("%s images: %s", track.uri, images)
             except Exception as e:
-                logger.warn("Error extracting images for %s: %s", uri, e)
+                logger.warning("Error extracting images for %s: %s", uri, e)
         try:
             track = self._validate_track(track)
             schema.insert_track(self._connect(), track, images)
         except Exception as e:
-            logger.warn("Skipped %s: %s", track.uri, e)
+            logger.warning("Skipped %s: %s", track.uri, e)
 
     def remove(self, uri):
         schema.delete_track(self._connect(), uri)
@@ -126,7 +126,7 @@ class LocalStorageProvider:
                 for name in files:
                     os.remove(os.path.join(root, name))
         except Exception as e:
-            logger.warn("Error clearing image directory: %s", e)
+            logger.warning("Error clearing image directory: %s", e)
         logger.info("Clearing SQLite database")
         try:
             schema.clear(self._connect())
@@ -197,7 +197,7 @@ class LocalStorageProvider:
                 data = getattr(image, "data", image)
                 images.add(self._get_or_create_image_file(None, data))
             except Exception as e:
-                logger.warn("Error extracting images for %r: %r", uri, e)
+                logger.warning("Error extracting images for %r: %r", uri, e)
         # look for external album art
         path = translator.local_uri_to_path(uri, self._media_dir)
         # replace brackets with character classes for use with glob
@@ -207,7 +207,7 @@ class LocalStorageProvider:
                 try:
                     images.add(self._get_or_create_image_file(path))
                 except Exception as e:
-                    logger.warn("Cannot read image file %r: %r", path, e)
+                    logger.warning("Cannot read image file %r: %r", path, e)
         return images
 
     def _get_or_create_image_file(self, path, data=None):
