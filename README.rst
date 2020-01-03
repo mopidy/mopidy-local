@@ -93,6 +93,7 @@ The following configuration values are available:
 
 - ``local/excluded_file_extensions``: File extensions to exclude when scanning
   the media directory. Values should be separated by either comma or newline.
+  Each file extension should start with a dot, .e.g. ``.html``.
 
 - ``local/directories``: List of top-level directory names and URIs
   for browsing.

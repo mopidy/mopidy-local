@@ -83,7 +83,7 @@ class LocalStorageProvider:
         return schema.tracks(self._connect())
 
     def add(self, track, tags=None, duration=None):
-        logger.info("Adding track: %s", track)
+        logger.debug("Adding track: %s", track)
         images = None
         if track.album and track.album.name:  # FIXME: album required
             uri = translator.local_uri_to_file_uri(track.uri, self._media_dir)

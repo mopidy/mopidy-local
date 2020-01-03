@@ -1,10 +1,9 @@
 import logging
-import os
+import pathlib
 import time
 
 from mopidy import commands, exceptions
 from mopidy.audio import scan, tags
-from mopidy.internal import path
 
 from mopidy_local import mtimes, storage, translator
 
@@ -26,17 +25,17 @@ class ClearCommand(commands.Command):
     def run(self, args, config):
         library = storage.LocalStorageProvider(config)
 
-        prompt = "\nAre you sure you want to clear the library? [y/N] "
+        prompt = "Are you sure you want to clear the library? [y/N] "
 
         if input(prompt).lower() != "y":
-            print("Clearing library aborted.")
+            print("Clearing library aborted")
             return 0
 
         if library.clear():
-            print("Library successfully cleared.")
+            print("Library successfully cleared")
             return 0
 
-        print("Unable to clear library.")
+        print("Unable to clear library")
         return 1
 
 
@@ -62,104 +61,154 @@ class ScanCommand(commands.Command):
         )
 
     def run(self, args, config):
-        media_dir = config["local"]["media_dir"]
-        scan_timeout = config["local"]["scan_timeout"]
-        flush_threshold = config["local"]["scan_flush_threshold"]
-        excluded_file_extensions = config["local"]["excluded_file_extensions"]
-        excluded_file_extensions = tuple(
-            file_ext.lower() for file_ext in excluded_file_extensions
-        )
-
+        media_dir = pathlib.Path(config["local"]["media_dir"]).resolve()
         library = storage.LocalStorageProvider(config)
 
-        file_mtimes, file_errors = mtimes.find_mtimes(
-            media_dir, follow=config["local"]["scan_follow_symlinks"]
+        file_mtimes = self._find_files(
+            media_dir=media_dir,
+            follow_symlinks=config["local"]["scan_follow_symlinks"],
         )
 
-        logger.info("Found %d files in media_dir.", len(file_mtimes))
+        files_to_update, files_in_library = self._check_tracks_in_library(
+            media_dir=media_dir,
+            file_mtimes=file_mtimes,
+            library=library,
+            force_rescan=args.force,
+        )
+
+        files_to_update.update(
+            self._find_files_to_scan(
+                media_dir=media_dir,
+                file_mtimes=file_mtimes,
+                files_in_library=files_in_library,
+                excluded_file_exts=[
+                    file_ext.lower()
+                    for file_ext in config["local"]["excluded_file_extensions"]
+                ],
+            )
+        )
+
+        self._scan_metadata(
+            media_dir=media_dir,
+            file_mtimes=file_mtimes,
+            files=files_to_update,
+            library=library,
+            timeout=config["local"]["scan_timeout"],
+            flush_threshold=config["local"]["scan_flush_threshold"],
+            limit=args.limit,
+        )
+
+        library.close()
+        return 0
+
+    def _find_files(self, *, media_dir, follow_symlinks):
+        logger.info(f"Finding files in {media_dir.as_uri()} ...")
+        file_mtimes, file_errors = mtimes.find_mtimes(media_dir, follow=follow_symlinks)
+        logger.info(f"Found {len(file_mtimes)} files in {media_dir.as_uri()}")
 
         if file_errors:
             logger.warning(
-                "Encountered %d errors while scanning media_dir.", len(file_errors)
+                f"Encountered {len(file_errors)} errors "
+                f"while finding files in {media_dir.as_uri()}"
             )
-        for name in file_errors:
-            logger.debug("Scan error %r for %r", file_errors[name], name)
+        for path in file_errors:
+            logger.warning(f"Error for {path.as_uri()}: {file_errors[path]}")
 
+        return file_mtimes
+
+    def _check_tracks_in_library(
+        self, *, media_dir, file_mtimes, library, force_rescan
+    ):
         num_tracks = library.load()
-        logger.info("Checking %d tracks from library.", num_tracks)
+        logger.info(f"Checking {num_tracks} tracks from library")
 
-        uris_to_update = set()
         uris_to_remove = set()
-        uris_in_library = set()
+        files_to_update = set()
+        files_in_library = set()
 
         for track in library.begin():
-            abspath = translator.local_uri_to_path(track.uri, media_dir)
-            mtime = file_mtimes.get(abspath)
+            absolute_path = translator.local_uri_to_path(track.uri, media_dir)
+            mtime = file_mtimes.get(absolute_path)
             if mtime is None:
-                logger.debug("Missing file %s", track.uri)
+                logger.debug(f"Removing {track.uri}: File not found")
                 uris_to_remove.add(track.uri)
-            elif mtime > track.last_modified or args.force:
-                uris_to_update.add(track.uri)
-            uris_in_library.add(track.uri)
+            elif mtime > track.last_modified or force_rescan:
+                files_to_update.add(absolute_path)
+            files_in_library.add(absolute_path)
 
-        logger.info("Removing %d missing tracks.", len(uris_to_remove))
-        for uri in uris_to_remove:
-            library.remove(uri)
+        logger.info(f"Removing {len(uris_to_remove)} missing tracks")
+        for local_uri in uris_to_remove:
+            library.remove(local_uri)
 
-        for abspath in file_mtimes:
-            relpath = os.path.relpath(abspath, media_dir)
-            uri = translator.path_to_local_track_uri(relpath)
+        return files_to_update, files_in_library
 
-            if "/." in relpath or relpath.startswith("."):
-                logger.debug("Skipped %s: Hidden directory/file.", uri)
-            elif relpath.lower().endswith(excluded_file_extensions):
-                logger.debug("Skipped %s: File extension excluded.", uri)
-            elif uri not in uris_in_library:
-                uris_to_update.add(uri)
+    def _find_files_to_scan(
+        self, *, media_dir, file_mtimes, files_in_library, excluded_file_exts
+    ):
+        files_to_update = set()
 
-        logger.info("Found %d tracks which need to be updated.", len(uris_to_update))
+        for absolute_path in file_mtimes:
+            relative_path = absolute_path.relative_to(media_dir)
+            file_uri = absolute_path.as_uri()
+
+            if any(p.startswith(".") for p in relative_path.parts):
+                logger.debug(f"Skipped {file_uri}: Hidden directory/file")
+            elif relative_path.suffix.lower() in excluded_file_exts:
+                logger.debug(f"Skipped {file_uri}: File extension excluded")
+            elif absolute_path not in files_in_library:
+                files_to_update.add(absolute_path)
+
+        logger.info(f"Found {len(files_to_update)} tracks which need to be updated")
+        return files_to_update
+
+    def _scan_metadata(
+        self, *, media_dir, file_mtimes, files, library, timeout, flush_threshold, limit
+    ):
         logger.info("Scanning...")
 
-        uris_to_update = sorted(uris_to_update, key=lambda v: v.lower())
-        uris_to_update = uris_to_update[: args.limit]
+        files = sorted(files)[:limit]
 
-        scanner = scan.Scanner(scan_timeout)
-        progress = _Progress(flush_threshold, len(uris_to_update))
+        scanner = scan.Scanner(timeout)
+        progress = _ScanProgress(batch_size=flush_threshold, total=len(files))
 
-        for uri in uris_to_update:
+        for absolute_path in files:
             try:
-                relpath = translator.local_uri_to_path(uri, media_dir)
-                file_uri = path.path_to_uri(media_dir / relpath)
+                file_uri = absolute_path.as_uri()
                 result = scanner.scan(file_uri)
+
                 if not result.playable:
-                    logger.warning("Failed %s: No audio found in file.", uri)
+                    logger.warning(
+                        f"Failed scanning {file_uri}: No audio found in file"
+                    )
                 elif result.duration < MIN_DURATION_MS:
                     logger.warning(
-                        "Failed %s: Track shorter than %dms", uri, MIN_DURATION_MS
+                        f"Failed scanning {file_uri}: "
+                        f"Track shorter than {MIN_DURATION_MS}ms"
                     )
                 else:
-                    mtime = file_mtimes.get(media_dir / relpath)
+                    local_uri = translator.path_to_local_track_uri(
+                        absolute_path, media_dir
+                    )
+                    mtime = file_mtimes.get(absolute_path)
                     track = tags.convert_tags_to_track(result.tags).replace(
-                        uri=uri, length=result.duration, last_modified=mtime
+                        uri=local_uri, length=result.duration, last_modified=mtime
                     )
                     library.add(track, result.tags, result.duration)
-                    logger.debug("Added %s", track.uri)
+                    logger.debug(f"Added {track.uri}")
             except exceptions.ScannerError as error:
-                logger.warning("Failed %s: %s", uri, error)
+                logger.warning(f"Failed scanning {file_uri}: {error}")
 
             if progress.increment():
                 progress.log()
                 if library.flush():
-                    logger.debug("Progress flushed.")
+                    logger.debug("Progress flushed")
 
         progress.log()
-        library.close()
-        logger.info("Done scanning.")
-        return 0
+        logger.info("Done scanning")
 
 
-class _Progress:
-    def __init__(self, batch_size, total):
+class _ScanProgress:
+    def __init__(self, *, batch_size, total):
         self.count = 0
         self.batch_size = batch_size
         self.total = total
@@ -173,14 +222,11 @@ class _Progress:
         duration = time.time() - self.start
         if self.count >= self.total or not self.count:
             logger.info(
-                "Scanned %d of %d files in %ds.", self.count, self.total, duration
+                f"Scanned {self.count} of {self.total} files in {duration:.3f}s."
             )
         else:
             remainder = duration / self.count * (self.total - self.count)
             logger.info(
-                "Scanned %d of %d files in %ds, ~%ds left.",
-                self.count,
-                self.total,
-                duration,
-                remainder,
+                f"Scanned {self.count} of {self.total} files "
+                f"in {duration:.3f}s, ~{remainder:.0f}s left"
             )
