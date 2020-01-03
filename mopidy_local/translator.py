@@ -39,4 +39,5 @@ def path_to_local_track_uri(path: Union[str, bytes, Path], media_dir: Path) -> s
     ppath = Path(os.fsdecode(path))
     if ppath.is_absolute():
         ppath = ppath.relative_to(media_dir)
-    return "local:track:%s" % urllib.parse.quote(bytes(ppath))
+    quoted_path = urllib.parse.quote(bytes(ppath))
+    return f"local:track:{quoted_path}"
