@@ -17,9 +17,7 @@ def local_uri_to_file_uri(local_uri: str, media_dir: Path) -> str:
 
 def local_uri_to_path(local_uri: str, media_dir: Path) -> Path:
     """Convert local track or directory URI to absolute path."""
-    if not local_uri.startswith("local:directory:") and not local_uri.startswith(
-        "local:track:"
-    ):
+    if not local_uri.startswith(("local:directory:", "local:track:")):
         raise ValueError("Invalid URI.")
     uri_path = urllib.parse.urlsplit(local_uri.split(":", 2)[2]).path
     file_bytes = urllib.parse.unquote_to_bytes(uri_path)
