@@ -191,7 +191,7 @@ class LocalLibraryProvider(backend.LibraryProvider):
                     )
                 )
             else:
-                logger.warn("Unexpected SQLite browse result: %r", ref)
+                logger.warning("Unexpected SQLite browse result: %r", ref)
         return refs
 
     def _filters(self, uri):

@@ -1,9 +1,8 @@
-import glob
 import hashlib
 import imghdr
 import logging
-import os
-import os.path
+import pathlib
+import shutil
 import sqlite3
 import struct
 
@@ -15,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 def check_dirs_and_files(config):
-    if not os.path.isdir(config["local"]["media_dir"]):
+    if not pathlib.Path(config["local"]["media_dir"]).is_dir():
         logger.warning(
             "Local media dir %s does not exist or we lack permissions to the "
             "directory or one of its parents" % config["local"]["media_dir"]
@@ -65,7 +64,7 @@ def get_image_size_jpeg(data):
 class LocalStorageProvider:
     def __init__(self, config):
         self._config = ext_config = config[Extension.ext_name]
-        self._media_dir = ext_config["media_dir"]
+        self._media_dir = pathlib.Path(ext_config["media_dir"])
         self._data_dir = Extension.get_data_dir(config)
         self._image_dir = Extension.get_image_dir(config)
         self._base_uri = "/" + Extension.ext_name + "/"
@@ -91,12 +90,12 @@ class LocalStorageProvider:
                 images = self._extract_images(track.uri, tags)
                 logger.debug("%s images: %s", track.uri, images)
             except Exception as e:
-                logger.warn("Error extracting images for %s: %s", uri, e)
+                logger.warning("Error extracting images for %s: %s", uri, e)
         try:
             track = self._validate_track(track)
             schema.insert_track(self._connect(), track, images)
         except Exception as e:
-            logger.warn("Skipped %s: %s", track.uri, e)
+            logger.warning("Skipped %s: %s", track.uri, e)
 
     def remove(self, uri):
         schema.delete_track(self._connect(), uri)
@@ -120,13 +119,10 @@ class LocalStorageProvider:
     def clear(self):
         logger.info("Clearing image directory")
         try:
-            for root, dirs, files in os.walk(self._image_dir, topdown=False):
-                for name in dirs:
-                    os.rmdir(os.path.join(root, name))
-                for name in files:
-                    os.remove(os.path.join(root, name))
-        except Exception as e:
-            logger.warn("Error clearing image directory: %s", e)
+            shutil.rmtree(self._image_dir)
+            self._image_dir.mkdir()
+        except IOError as e:
+            logger.warning("Error clearing image directory: %s", e)
         logger.info("Clearing SQLite database")
         try:
             schema.clear(self._connect())
@@ -182,12 +178,10 @@ class LocalStorageProvider:
         logger.info("Cleaning up image directory")
         with self._connect() as c:
             uris = set(schema.get_image_uris(c))
-        for root, _, files in os.walk(self._image_dir):
-            for name in files:
-                if uritools.urijoin(self._base_uri, name) not in uris:
-                    path = os.path.join(root, name)
-                    logger.info("Deleting file %s", path)
-                    os.remove(path)
+        for image_path in self._image_dir.glob("**/*"):
+            if uritools.urijoin(self._base_uri, image_path.name) not in uris:
+                logger.info(f"Deleting file {image_path.as_uri()}")
+                image_path.unlink()
 
     def _extract_images(self, uri, tags):
         images = set()  # filter duplicate images, e.g. embedded/external
@@ -197,17 +191,18 @@ class LocalStorageProvider:
                 data = getattr(image, "data", image)
                 images.add(self._get_or_create_image_file(None, data))
             except Exception as e:
-                logger.warn("Error extracting images for %r: %r", uri, e)
+                logger.warning("Error extracting images for %r: %r", uri, e)
         # look for external album art
-        path = translator.local_uri_to_path(uri, self._media_dir)
-        # replace brackets with character classes for use with glob
-        dirname = os.path.dirname(path).replace("[", "[[]")
+        track_path = translator.local_uri_to_path(uri, self._media_dir)
+        dir_path = track_path.parent
         for pattern in self._patterns:
-            for path in glob.glob(os.path.join(dirname, pattern)):
+            for match_path in dir_path.glob(pattern):
                 try:
-                    images.add(self._get_or_create_image_file(path))
+                    images.add(self._get_or_create_image_file(match_path))
                 except Exception as e:
-                    logger.warn("Cannot read image file %r: %r", path, e)
+                    logger.warning(
+                        f"Cannot read image file {match_path.as_uri()}: {e!r}"
+                    )
         return images
 
     def _get_or_create_image_file(self, path, data=None):
@@ -231,9 +226,8 @@ class LocalStorageProvider:
             name = "%s-%dx%d.%s" % (digest, width, height, what)
         else:
             name = f"{digest}.{what}"
-        dest = os.path.join(self._image_dir, name)
-        if not os.path.isfile(dest):
-            logger.info("Creating file %s", dest)
-            with open(dest, "wb") as fh:
-                fh.write(data)
+        image_path = self._image_dir / name
+        if not image_path.is_file():
+            logger.info(f"Creating file {image_path.as_uri()}")
+            image_path.write_bytes(data)
         return uritools.urijoin(self._base_uri, name)
