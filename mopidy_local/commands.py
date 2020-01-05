@@ -147,8 +147,13 @@ class ScanCommand(commands.Command):
         return files_to_update, files_in_library
 
     def _find_files_to_scan(
-        self, *, media_dir, file_mtimes, files_in_library, included_file_exts,
-            excluded_file_exts
+        self,
+        *,
+        media_dir,
+        file_mtimes,
+        files_in_library,
+        included_file_exts,
+        excluded_file_exts,
     ):
         files_to_update = set()
 
@@ -160,7 +165,9 @@ class ScanCommand(commands.Command):
             else:
                 return False
 
-        def _extension_filters(relative_path, file_uri, included_file_exts, excluded_file_exts):
+        def _extension_filters(
+            relative_path, file_uri, included_file_exts, excluded_file_exts
+        ):
             """Returns True if a file extension appears in the included_file_extensions
             configuration, or, if this does not exist, if a file extension does not appear
             in the excluded_file_extensions configuration. Otherwise returns False."""
@@ -169,7 +176,9 @@ class ScanCommand(commands.Command):
                     logger.debug(f"Added {file_uri}: File extension on included list")
                     return True
                 else:
-                    logger.debug(f"Skipped {file_uri}: File extension not on included list")
+                    logger.debug(
+                        f"Skipped {file_uri}: File extension not on included list"
+                    )
                     return False
             else:
                 if relative_path.suffix.lower() in excluded_file_exts:
@@ -183,9 +192,13 @@ class ScanCommand(commands.Command):
             relative_path = absolute_path.relative_to(media_dir)
             file_uri = absolute_path.as_uri()
 
-            if not _is_hidden_file(relative_path, file_uri) \
-               and _extension_filters(relative_path, file_uri, included_file_exts, excluded_file_exts) \
-               and absolute_path not in files_in_library:
+            if (
+                not _is_hidden_file(relative_path, file_uri)
+                and _extension_filters(
+                    relative_path, file_uri, included_file_exts, excluded_file_exts
+                )
+                and absolute_path not in files_in_library
+            ):
                 files_to_update.add(absolute_path)
 
         logger.info(f"Found {len(files_to_update)} tracks which need to be updated")
