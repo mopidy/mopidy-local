@@ -81,6 +81,10 @@ class ScanCommand(commands.Command):
                 media_dir=media_dir,
                 file_mtimes=file_mtimes,
                 files_in_library=files_in_library,
+                included_file_exts=[
+                    file_ext.lower()
+                    for file_ext in config["local"]["included_file_extensions"]
+                ],
                 excluded_file_exts=[
                     file_ext.lower()
                     for file_ext in config["local"]["excluded_file_extensions"]
@@ -143,19 +147,45 @@ class ScanCommand(commands.Command):
         return files_to_update, files_in_library
 
     def _find_files_to_scan(
-        self, *, media_dir, file_mtimes, files_in_library, excluded_file_exts
+        self, *, media_dir, file_mtimes, files_in_library, included_file_exts,
+            excluded_file_exts
     ):
         files_to_update = set()
+
+        def _is_hidden_file(relative_path, file_uri):
+            """Returns True for hidden directories/files: these are ignored"""
+            if any(p.startswith(".") for p in relative_path.parts):
+                logger.debug(f"Skipped {file_uri}: Hidden directory/file")
+                return True
+            else:
+                return False
+
+        def _extension_filters(relative_path, file_uri, included_file_exts, excluded_file_exts):
+            """Returns True if a file extension appears in the included_file_extensions
+            configuration, or, if this does not exist, if a file extension does not appear
+            in the excluded_file_extensions configuration. Otherwise returns False."""
+            if included_file_exts:
+                if relative_path.suffix.lower() in included_file_exts:
+                    logger.debug(f"Added {file_uri}: File extension on included list")
+                    return True
+                else:
+                    logger.debug(f"Skipped {file_uri}: File extension not on included list")
+                    return False
+            else:
+                if relative_path.suffix.lower() in excluded_file_exts:
+                    logger.debug(f"Skipped {file_uri}: File extension excluded")
+                    return False
+                else:
+                    logger.debug(f"Included {file_uri}: File extension not excluded")
+                    return True
 
         for absolute_path in file_mtimes:
             relative_path = absolute_path.relative_to(media_dir)
             file_uri = absolute_path.as_uri()
 
-            if any(p.startswith(".") for p in relative_path.parts):
-                logger.debug(f"Skipped {file_uri}: Hidden directory/file")
-            elif relative_path.suffix.lower() in excluded_file_exts:
-                logger.debug(f"Skipped {file_uri}: File extension excluded")
-            elif absolute_path not in files_in_library:
+            if not _is_hidden_file(relative_path, file_uri) \
+               and _extension_filters(relative_path, file_uri, included_file_exts, excluded_file_exts) \
+               and absolute_path not in files_in_library:
                 files_to_update.add(absolute_path)
 
         logger.info(f"Found {len(files_to_update)} tracks which need to be updated")

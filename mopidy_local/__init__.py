@@ -27,6 +27,7 @@ class Extension(ext.Extension):
         schema["scan_flush_threshold"] = config.Integer(minimum=0)
         schema["scan_follow_symlinks"] = config.Boolean()
         schema["excluded_file_extensions"] = config.List(optional=True)
+        schema["included_file_extensions"] = config.List(optional=True)
         schema["directories"] = config.List()
         schema["timeout"] = config.Integer(optional=True, minimum=1)
         schema["use_artist_sortname"] = config.Boolean()
