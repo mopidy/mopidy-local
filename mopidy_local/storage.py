@@ -31,10 +31,7 @@ def get_image_size_gif(data):
 
 
 def model_uri(type, model):
-    # only use valid mbids; TODO: use regex for that?
-    if model.musicbrainz_id and len(model.musicbrainz_id) == 36:
-        return f"local:{type}:mbid:{model.musicbrainz_id}"
-    elif type == "album":
+    if type == "album":
         # ignore num_tracks for multi-disc albums
         digest = hashlib.md5(str(model.replace(num_tracks=None)).encode())
     else:
