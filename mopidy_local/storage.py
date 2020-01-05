@@ -1,3 +1,4 @@
+import hashlib
 import imghdr
 import logging
 import pathlib
