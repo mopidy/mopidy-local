@@ -10,8 +10,9 @@ v3.1.0 (UNRELEASED)
 - Add ``.cue`` to the list of excluded file extensions. (PR: #29)
 - Replace ``os.path`` usage with ``pathlib`` to handle arbitrary file path
   encodings better. (#20, PR: #30)
+- Add an ``included_files_extensions`` config. (#8, PR: #32)
 
-
+  
 v3.0.0 (2019-12-22)
 ===================
 

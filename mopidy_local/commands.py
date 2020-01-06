@@ -158,7 +158,6 @@ class ScanCommand(commands.Command):
         files_to_update = set()
 
         def _is_hidden_file(relative_path, file_uri):
-            """Returns True for hidden directories/files: these are ignored"""
             if any(p.startswith(".") for p in relative_path.parts):
                 logger.debug(f"Skipped {file_uri}: Hidden directory/file")
                 return True
@@ -168,9 +167,6 @@ class ScanCommand(commands.Command):
         def _extension_filters(
             relative_path, file_uri, included_file_exts, excluded_file_exts
         ):
-            """Returns True if a file extension appears in the included_file_extensions
-            configuration, or, if this does not exist, if a file extension does not appear
-            in the excluded_file_extensions configuration. Otherwise returns False."""
             if included_file_exts:
                 if relative_path.suffix.lower() in included_file_exts:
                     logger.debug(f"Added {file_uri}: File extension on included list")
