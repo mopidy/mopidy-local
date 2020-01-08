@@ -169,8 +169,7 @@ class ScanCommand(commands.Command):
         ):
             if included_file_exts:
                 if relative_path.suffix.lower() in included_file_exts:
-                    logger.debug(
-                        f"Added {file_uri}: File extension on included list")
+                    logger.debug(f"Added {file_uri}: File extension on included list")
                     return True
                 else:
                     logger.debug(
@@ -179,12 +178,12 @@ class ScanCommand(commands.Command):
                     return False
             else:
                 if relative_path.suffix.lower() in excluded_file_exts:
-                    logger.debug(
-                        f"Skipped {file_uri}: File extension on excluded list")
+                    logger.debug(f"Skipped {file_uri}: File extension on excluded list")
                     return False
                 else:
                     logger.debug(
-                        f"Included {file_uri}: File extension not on excluded list")
+                        f"Included {file_uri}: File extension not on excluded list"
+                    )
                     return True
 
         for absolute_path in file_mtimes:
