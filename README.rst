@@ -91,9 +91,16 @@ The following configuration values are available:
   library it should try and store its progress so far. Some libraries might not
   respect this setting. Set this to zero to disable flushing.
 
+- ``local/included_file_extensions``: File extensions to include when scanning
+  the media directory. Values should be separated by either comma or newline.
+  Each file extension should start with a dot, .e.g. ``.flac``. Setting any
+  values here will override the existence of ``local/excluded_file_extensions``.
+
 - ``local/excluded_file_extensions``: File extensions to exclude when scanning
   the media directory. Values should be separated by either comma or newline.
-  Each file extension should start with a dot, .e.g. ``.html``.
+  Each file extension should start with a dot, .e.g. ``.html``. Defaults to a
+  list of common non-audio file extensions often found in music collections.
+  This config value has no effect if ``local/included_file_extensions`` is set.
 
 - ``local/directories``: List of top-level directory names and URIs
   for browsing.

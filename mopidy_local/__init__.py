@@ -26,6 +26,7 @@ class Extension(ext.Extension):
         schema["scan_timeout"] = config.Integer(minimum=1000, maximum=1000 * 60 * 60)
         schema["scan_flush_threshold"] = config.Integer(minimum=0)
         schema["scan_follow_symlinks"] = config.Boolean()
+        schema["included_file_extensions"] = config.List(optional=True)
         schema["excluded_file_extensions"] = config.List(optional=True)
         schema["directories"] = config.List()
         schema["timeout"] = config.Integer(optional=True, minimum=1)
