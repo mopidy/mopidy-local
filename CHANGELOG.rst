@@ -3,7 +3,7 @@ Changelog
 *********
 
 
-v3.1.0 (UNRELEASED)
+v3.1.0 (2020-01-09)
 ===================
 
 - Improve handling of paths with arbitrary encodings in the scanner. (#20, PR: #29)
