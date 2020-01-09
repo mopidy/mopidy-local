@@ -1,4 +1,3 @@
-import hashlib
 import logging
 import operator
 import sqlite3
@@ -203,9 +202,3 @@ class LocalLibraryProvider(backend.LibraryProvider):
             return [{"album": uri}]
         else:
             return []
-
-    def _model_uri(self, type, model):
-        if model.musicbrainz_id and self._config["use_%s_mbid_uri" % type]:
-            return f"local:{type}:mbid:{model.musicbrainz_id}"
-        digest = hashlib.md5(str(model)).hexdigest()
-        return f"local:{type}:md5:{digest}"
