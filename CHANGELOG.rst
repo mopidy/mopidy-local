@@ -3,6 +3,12 @@ Changelog
 *********
 
 
+v3.1.1 (UNRELEASED)
+===================
+
+- Handle scan results without duration gracefully. (#36, PR: #35)
+
+
 v3.1.0 (2020-01-09)
 ===================
 
