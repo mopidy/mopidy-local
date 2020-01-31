@@ -221,6 +221,11 @@ class ScanCommand(commands.Command):
                     logger.warning(
                         f"Failed scanning {file_uri}: No audio found in file"
                     )
+                elif result.duration is None:
+                    logger.warning(
+                        f"Failed scanning {file_uri}: "
+                        "No duration information found in file"
+                    )
                 elif result.duration < MIN_DURATION_MS:
                     logger.warning(
                         f"Failed scanning {file_uri}: "
