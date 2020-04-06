@@ -150,6 +150,15 @@ Mopidy's index of your local library, you need to rescan::
 
     mopidy local scan
 
+Clearing the library
+--------------------
+
+To delete your local images and clear your local library::
+
+    mopidy local clear
+
+A prompt will ask you to confirm this irreversible operation.
+
 
 Project resources
 =================
