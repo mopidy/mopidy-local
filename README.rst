@@ -150,6 +150,15 @@ Mopidy's index of your local library, you need to rescan::
 
     mopidy local scan
 
+Options can be specified to control the behavior of the scan command:
+
+- ``--force`` Force rescan of all media files
+- ``--limit <number>`` Maximum number of tracks to scan
+
+Example::
+
+    mopidy local scan --limit 50
+
 Clearing the library
 --------------------
 
