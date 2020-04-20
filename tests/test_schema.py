@@ -10,11 +10,11 @@ DBPATH = ":memory:"
 
 class SchemaTest(unittest.TestCase):
     artists = [
-        Artist(uri="local:artist:0", name="artist #0"),
+        Artist(uri="local:artist:0", name="artist #0", musicbrainz_id="1234a-987c"),
         Artist(uri="local:artist:1", name="artist #1"),
     ]
     albums = [
-        Album(uri="local:album:0", name="album #0"),
+        Album(uri="local:album:0", name="album #0", musicbrainz_id="1234a-3421d"),
         Album(uri="local:album:1", name="album #1", artists=[artists[0]]),
         Album(uri="local:album:2", name="album #2", artists=[artists[1]]),
     ]
@@ -29,6 +29,7 @@ class SchemaTest(unittest.TestCase):
             album=albums[2],
             composers=[artists[0]],
             performers=[artists[0]],
+            musicbrainz_id="1234a-567b",
         ),
     ]
 
@@ -49,31 +50,49 @@ class SchemaTest(unittest.TestCase):
         assert len(self.tracks) == len(tracks)
 
     def test_list_distinct(self):
-        self.assertCountEqual(
+        self.assertEqual(
+            [track.name for track in self.tracks],
+            schema.list_distinct(self.connection, "track_name"),
+        )
+        self.assertEqual([], schema.list_distinct(self.connection, "track_no"))
+        self.assertEqual([], schema.list_distinct(self.connection, "disc_no"))
+        self.assertEqual(
             [album.name for album in self.albums],
             schema.list_distinct(self.connection, "album"),
         )
-        self.assertCountEqual(
+        self.assertEqual(
             [artist.name for artist in self.artists[0:2]],
             schema.list_distinct(self.connection, "albumartist"),
         )
-        self.assertCountEqual(
+        self.assertEqual(
             [artist.name for artist in self.artists[0:1]],
             schema.list_distinct(self.connection, "artist"),
         )
-        self.assertCountEqual(
+        self.assertEqual(
             [artist.name for artist in self.artists[0:1]],
             schema.list_distinct(self.connection, "composer"),
         )
-        self.assertCountEqual(
+        self.assertEqual(
             [artist.name for artist in self.artists[0:1]],
             schema.list_distinct(self.connection, "performer"),
         )
-        self.assertCountEqual(
+        self.assertEqual(
             [self.tracks[0].date], schema.list_distinct(self.connection, "date")
         )
-        self.assertCountEqual(
+        self.assertEqual(
             [self.tracks[0].genre], schema.list_distinct(self.connection, "genre")
+        )
+        self.assertEqual(
+            [self.tracks[4].musicbrainz_id],
+            schema.list_distinct(self.connection, "musicbrainz_trackid"),
+        )
+        self.assertEqual(
+            [self.artists[0].musicbrainz_id],
+            schema.list_distinct(self.connection, "musicbrainz_artistid"),
+        )
+        self.assertEqual(
+            [self.albums[0].musicbrainz_id],
+            schema.list_distinct(self.connection, "musicbrainz_albumid"),
         )
 
     def test_lookup_track(self):
