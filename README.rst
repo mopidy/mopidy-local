@@ -29,6 +29,7 @@ Table of contents
 
   - `Generating a library`_
   - `Updating the library`_
+  - `Clearing the library`_
 
 - `Project resources`_
 - Credits_
@@ -158,6 +159,7 @@ Options can be specified to control the behavior of the scan command:
 Example::
 
     mopidy local scan --limit 50
+
 
 Clearing the library
 --------------------
