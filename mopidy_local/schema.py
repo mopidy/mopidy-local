@@ -157,11 +157,15 @@ _SEARCH_FIELDS = {
     "albumartist",
     "genre",
     "track_no",
+    "disc_no",
     "date",
     "comment",
+    "musicbrainz_trackid",
+    "musicbrainz_albumid",
+    "musicbrainz_artistid",
 }
 
-schema_version = 6
+schema_version = 7
 
 logger = logging.getLogger(__name__)
 
@@ -218,7 +222,7 @@ def list_distinct(c, field, query=tuple()):
         elif key in _SEARCH_FIELDS:
             terms.append("%s = ?" % key)
         else:
-            raise LookupError("Invalid search field: %s" % key)
+            raise LookupError("Invalid query field: %s" % key)
         params.append(value)
     if terms:
         sql += " AND " + " AND ".join(terms)

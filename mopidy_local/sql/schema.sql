@@ -2,7 +2,7 @@
 
 BEGIN EXCLUSIVE TRANSACTION;
 
-PRAGMA user_version = 6;                -- schema version
+PRAGMA user_version = 7;                -- schema version
 
 CREATE TABLE artist (
     uri             TEXT PRIMARY KEY,   -- artist URI
@@ -45,20 +45,24 @@ CREATE TABLE track (
     FOREIGN KEY (performers) REFERENCES artist (uri)
 );
 
-CREATE INDEX album_name_index           ON album (name);
-CREATE INDEX album_artists_index        ON album (artists);
-CREATE INDEX album_date_index           ON album (date);
-CREATE INDEX artist_name_index          ON artist (name);
-CREATE INDEX track_name_index           ON track (name);
-CREATE INDEX track_album_index          ON track (album);
-CREATE INDEX track_artists_index        ON track (artists);
-CREATE INDEX track_composers_index      ON track (composers);
-CREATE INDEX track_performers_index     ON track (performers);
-CREATE INDEX track_genre_index          ON track (genre);
-CREATE INDEX track_track_no_index       ON track (track_no);
-CREATE INDEX track_date_index           ON track (date);
-CREATE INDEX track_comment_index        on track (comment);
-CREATE INDEX track_last_modified_index  on track (last_modified);
+CREATE INDEX album_name_index            ON album (name);
+CREATE INDEX album_artists_index         ON album (artists);
+CREATE INDEX album_date_index            ON album (date);
+CREATE INDEX artist_name_index           ON artist (name);
+CREATE INDEX track_name_index            ON track (name);
+CREATE INDEX track_album_index           ON track (album);
+CREATE INDEX track_artists_index         ON track (artists);
+CREATE INDEX track_composers_index       ON track (composers);
+CREATE INDEX track_performers_index      ON track (performers);
+CREATE INDEX track_genre_index           ON track (genre);
+CREATE INDEX track_track_no_index        ON track (track_no);
+CREATE INDEX track_disc_no_index         ON track (disc_no);
+CREATE INDEX track_date_index            ON track (date);
+CREATE INDEX track_comment_index         ON track (comment);
+CREATE INDEX track_last_modified_index   ON track (last_modified);
+CREATE INDEX album_musicbrainz_id_index  ON album (musicbrainz_id);
+CREATE INDEX artist_musicbrainz_id_index ON artist (musicbrainz_id);
+CREATE INDEX track_musicbrainz_id_index  ON track (musicbrainz_id);
 
 -- Convenience views
 
@@ -133,8 +137,13 @@ SELECT docid                            AS docid,
        albumartist_name                 AS albumartist,
        genre                            AS genre,
        track_no                         AS track_no,
+       disc_no                          AS disc_no,
        coalesce(date, album_date)       AS date,
-       comment                          AS comment
+       comment                          AS comment,
+       musicbrainz_id                   AS musicbrainz_trackid,
+       album_musicbrainz_id             AS musicbrainz_albumid,
+       artist_musicbrainz_id            AS musicbrainz_artistid
+
  FROM tracks;
 
 -- Full-text search; column names match Mopidy query fields
@@ -149,8 +158,12 @@ CREATE VIRTUAL TABLE fts USING fts3 (
     albumartist,
     genre,
     track_no,
+    disc_no,
     date,
-    comment
+    comment,
+    musicbrainz_trackid,
+    musicbrainz_albumid,
+    musicbrainz_artistid
 );
 
 CREATE TRIGGER track_after_insert AFTER INSERT ON track
@@ -166,8 +179,12 @@ BEGIN
         albumartist,
         genre,
         track_no,
+        disc_no,
         date,
-        comment
+        comment,
+        musicbrainz_trackid,
+        musicbrainz_albumid,
+        musicbrainz_artistid
     ) SELECT * FROM search WHERE docid = new.rowid;
 END;
 
@@ -184,8 +201,12 @@ BEGIN
         albumartist,
         genre,
         track_no,
+        disc_no,
         date,
-        comment
+        comment,
+        musicbrainz_trackid,
+        musicbrainz_albumid,
+        musicbrainz_artistid
     ) SELECT * FROM search WHERE docid = new.rowid;
 END;
 
