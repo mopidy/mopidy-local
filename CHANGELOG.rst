@@ -8,6 +8,8 @@ v3.2.0 (UNRELEASED)
 
 - Support searching by MusicBrainz ID and disc number fields. (#42, PR: #43)
 
+- Handle both 'track' and 'track_name' distinct fields. (#44, PR: #45)
+
 
 v3.1.1 (2020-01-31)
 ===================
