@@ -1,6 +1,7 @@
 import pathlib
 import os
 import unittest
+from unittest import mock
 
 import pykka
 from mopidy import core
@@ -77,3 +78,10 @@ class LocalLibraryProviderTest(unittest.TestCase):
         assert empty == lib.search(uris=["local:directory"]).get()
         assert empty == lib.search(uris=["local:directory:"]).get()
         assert empty == lib.search(uris=["foobar:"]).get()
+
+    @mock.patch("mopidy_local.schema.list_distinct")
+    def test_distinct_field_track_uses_track_name(self, distinct_mock):
+        distinct_mock.return_value = []
+
+        assert self.library.get_distinct("track").get() == set()
+        distinct_mock.assert_called_once_with(mock.ANY, "track_name", [])

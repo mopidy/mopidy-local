@@ -102,7 +102,9 @@ class LocalLibraryProvider(backend.LibraryProvider):
         q = []
         for key, values in query.items() if query else []:
             q.extend((key, value) for value in values)
-        return set(schema.list_distinct(self._connect(), field, q))
+        # Gracefully handle both old and new field values for this API.
+        compat_field = {"track": "track_name"}.get(field, field)
+        return set(schema.list_distinct(self._connect(), compat_field, q))
 
     def _connect(self):
         if not self._connection:
