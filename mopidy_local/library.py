@@ -79,6 +79,7 @@ class LocalLibraryProvider(backend.LibraryProvider):
             return []
 
     def search(self, query=None, limit=100, offset=0, uris=None, exact=False):
+        limit = self._config["max_search_results"]
         q = []
         for field, values in query.items() if query else []:
             q.extend((field, value) for value in values)
