@@ -82,6 +82,8 @@ The following configuration values are available:
 
 - ``local/media_dir``: Path to directory with local media files.
 
+- ``local/max_search_results``: Number of search results that should be returned. Default is 100.
+
 - ``local/scan_timeout``: Number of milliseconds before giving up scanning a
   file and moving on to the next file.
 
