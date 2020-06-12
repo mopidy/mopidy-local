@@ -18,6 +18,7 @@ class LocalLibraryProviderTest(unittest.TestCase):
             "media_dir": path_to_data_dir(""),
             "directories": [],
             "timeout": 10,
+            "max_search_results": 100,
             "use_artist_sortname": False,
             "album_art_files": [],
         },

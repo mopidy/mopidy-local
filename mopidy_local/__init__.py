@@ -19,6 +19,7 @@ class Extension(ext.Extension):
     def get_config_schema(self):
         schema = super().get_config_schema()
         schema["library"] = config.Deprecated()
+        schema["max_search_results"] = config.Integer(minimum=0)
         schema["media_dir"] = config.Path()
         schema["data_dir"] = config.Deprecated()
         schema["playlists_dir"] = config.Deprecated()
