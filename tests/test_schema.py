@@ -135,7 +135,11 @@ class SchemaTest(unittest.TestCase):
                 [("any", self.artists[0].name)],
                 [{"album": self.albums[1].uri}],
             ),
-            ([self.tracks[2].uri], [("album", self.tracks[2].album.name)], [],),
+            (
+                [self.tracks[2].uri],
+                [("album", self.tracks[2].album.name)],
+                [],
+            ),
             (
                 [self.tracks[1].uri],
                 [("artist", next(iter(self.tracks[1].artists)).name)],
