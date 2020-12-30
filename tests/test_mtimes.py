@@ -106,8 +106,12 @@ def test_missing_permission_to_directory_is_an_error(tmp_dir_path):
 
     result, errors = mtimes.find_mtimes(tmp_dir_path)
 
-    assert result == {}
-    assert errors == {dir_path: tests.IsA(mtimes.FindError)}
+    if os.getuid() == 0:
+        # Test is run as root, nothing is off limits.
+        assert errors == {}
+    else:
+        assert result == {}
+        assert errors == {dir_path: tests.IsA(mtimes.FindError)}
 
     dir_path.chmod(0o755)
 
