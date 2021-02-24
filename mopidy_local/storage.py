@@ -58,6 +58,15 @@ def get_image_size_jpeg(data):
     return width, height
 
 
+def test_jpeg(data, file_handle):
+    # Additional JPEG detection looking for JPEG SOI marker
+    if data[:2] == b"\xff\xd8":
+        return "jpeg"
+
+
+imghdr.tests.append(test_jpeg)
+
+
 class LocalStorageProvider:
     def __init__(self, config):
         self._config = ext_config = config[Extension.ext_name]
