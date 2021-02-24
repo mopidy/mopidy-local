@@ -58,8 +58,9 @@ def get_image_size_jpeg(data):
     return width, height
 
 
-def test_jpeg(h, f):
-    if h[:2] == b"\xff\xd8":
+def test_jpeg(data, file_handle):
+    # Additional JPEG detection looking for JPEG SOI marker
+    if data[:2] == b"\xff\xd8":
         return "jpeg"
 
 
