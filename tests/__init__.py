@@ -1,3 +1,4 @@
+import functools
 import pathlib
 
 from mopidy.internal import deprecation
@@ -13,13 +14,12 @@ def generate_song(i):
 
 
 def populate_tracklist(func):
+    @functools.wraps(func)
     def wrapper(self):
         with deprecation.ignore("core.tracklist.add:tracks_arg"):
             self.tl_tracks = self.core.tracklist.add(self.tracks)
         return func(self)
 
-    wrapper.__name__ = func.__name__
-    wrapper.__doc__ = func.__doc__
     return wrapper
 
 
