@@ -1,43 +1,54 @@
 <!doctype html>
 <html>
   <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Mopidy-Local</title>
+    <script type="text/javascript">
+      var file = "http://" + window.location.host + "/mopidy/mopidy.css",
+        link = document.createElement("link");
+      link.href = file;
+      link.type = "text/css";
+      link.rel = "stylesheet";
+      link.media = "screen,print";
+      document.getElementsByTagName("head")[0].appendChild(link);
+    </script>
     <style>
-      html {
-          background: #f8f8f8;
-          color: #555;
-          font-family: Geneva, Tahoma, Verdana, sans-serif;
-          line-height: 1.4em;
-      }
-      body {
-          margin: 0 auto;
-          max-width: 600px;
-      }
-      h1 {
-          font-weight: 500;
-          line-height: 1.1em;
-      }
-      a {
-          color: #555;
-          text-decoration: none;
-      }
       img {
-          border: 0;
-          height: 80px;
-          width: 80px;
+        width: 63px; height: 63px;
+        padding-left: 2px;
+        padding-right: 2px;
       }
     </style>
   </head>
   <body>
-    <h1>Mopidy-Local</h1>
-    <p>
-      This Web client is used to serve album art extracted from local
-      media files by the Mopidy-Local extension.
-    </p>
-    <div>
-      {% for image in images %}
-        <a href="{{image}}"><img src="{{image}}"></a>
-      {% end %}
+    <div class="box focus">
+      <h1>Mopidy-Local</h1>
+      <p>
+        This Web client is used to serve album art extracted from local
+        media files by the Mopidy-Local extension.
+      </p>
+    </div>
+    <div class="box">
+      <p>
+      <h2 id="b1">Mopidy-Local image cache</h2>
+      </p>
+      <span style="font-size: 0; line-height:0">
+        {% for image in images %}
+        <a style="border: 0px none;" href="{{image}}">
+          <img src="{{image}}" loading="lazy">
+        </a>
+        {% end %}
+      </span>
     </div>
   </body>
 </html>
+<script>
+  var imgwidth = (document.getElementById('b1').clientWidth / 8) - 4,
+    css = 'img {height: ' + imgwidth + 'px; width: ' + imgwidth + 'px;}',
+    head = document.head || document.getElementsByTagName('head')[0],
+    style = document.createElement('style');
+  head.appendChild(style);
+  style.type = 'text/css';
+  style.appendChild(document.createTextNode(css));
+</script>
