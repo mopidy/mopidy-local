@@ -9,15 +9,15 @@
       #thumbnail_container {
        display: grid;
        grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
-       grid-gap: 0px;
+       grid-gap: 2px;
        line-height: 0%;
       }
-      .thumbnail {
-          border: 0px none;
-          max-width: 98%;
-          max-height: 96%;
-          height: auto;
-          width: auto;
+      #thumbnail_container a {
+       border: none;
+      }
+      #thumbnail_container img {
+       border: none;
+       width: 100%;
       }
     </style>
   </head>
@@ -30,15 +30,14 @@
       </p>
     </div>
     <div class="box">
-      <h2 id="b1">Mopidy-Local image cache</h2>
+      <h2>Mopidy-Local image cache</h2>
       <span id="thumbnail_container">
         {% for image in images %}
-        <a style="border: 0px none;" href="{{image}}">
-          <img class="thumbnail" src="{{image}}" alt="Album art thumbnail; link to full size album art" loading="lazy">
+        <a href="{{image}}">
+          <img src="{{image}}" alt="Album art thumbnail; link to full size album art" loading="lazy">
         </a>
         {% end %}
       </span>
     </div>
   </body>
 </html>
-
