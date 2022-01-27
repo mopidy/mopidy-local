@@ -34,7 +34,7 @@
       <span id="thumbnail_container">
         {% for image in images %}
         <a href="{{image}}">
-          <img src="{{image}}" alt="Album art thumbnail; link to full size album art" loading="lazy">
+          <img id="thumbnail" src="{{image}}" alt="Album art thumbnail; link to full size album art" loading="lazy">
         </a>
         {% end %}
       </span>
