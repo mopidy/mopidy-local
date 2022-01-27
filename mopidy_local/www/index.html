@@ -18,6 +18,7 @@
       #thumbnail_container img {
        border: none;
        width: 100%;
+       aspect-ratio: 1;
       }
     </style>
   </head>
@@ -31,22 +32,13 @@
     </div>
     <div class="box">
       <h2>Mopidy-Local image cache</h2>
-      <span id="thumbnail_container">
+      <div id="thumbnail_container">
         {% for image in images %}
         <a href="{{image}}">
-          <img id="thumbnail" src="{{image}}" alt="Album art thumbnail; link to full size album art" loading="lazy">
+          <img src="{{image}}" alt="Album art thumbnail; link to full size album art" loading="lazy">
         </a>
         {% end %}
       </span>
     </div>
   </body>
 </html>
-<script>
-  var imgwidth = document.getElementById('thumbnail').width;
-  var css = '#thumbnail_container img {height: ' + imgwidth + 'px;}';
-  var head = document.head || document.getElementsByTagName('head')[0];
-  var style = document.createElement('style');
-  head.appendChild(style);
-  style.type = 'text/css';
-  style.appendChild(document.createTextNode(css));
-</script>
