@@ -6,19 +6,19 @@
     <title>Mopidy-Local</title>
     <link rel="stylesheet" href="/mopidy/mopidy.css" type="text/css" media="screen, print">
     <style>
-      #thumbnail_container {
-       display: grid;
-       grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
-       grid-gap: 2px;
-       line-height: 0%;
+      #thumbnails {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
+        grid-gap: 2px;
+        line-height: 0%;
       }
-      #thumbnail_container a {
-       border: none;
+      #thumbnails a {
+        border: none;
       }
-      #thumbnail_container img {
-       border: none;
-       width: 100%;
-       aspect-ratio: 1;
+      #thumbnails img {
+        border: none;
+        width: 100%;
+        aspect-ratio: 1;
       }
     </style>
   </head>
@@ -31,12 +31,14 @@
       </p>
     </div>
     <div class="box">
-      <h2>Mopidy-Local image cache</h2>
-      <div id="thumbnail_container">
+      <h2>Image cache</h2>
+      <p>Images extracted from local media files will automatically appear
+      here.</p>
+      <div id="thumbnails">
         {% for image in images %}
-        <a href="{{image}}">
-          <img src="{{image}}" alt="Album art thumbnail; link to full size album art" loading="lazy">
-        </a>
+          <a href="{{image}}">
+            <img src="{{image}}" alt="Album art thumbnail" loading="lazy">
+          </a>
         {% end %}
       </div>
     </div>
