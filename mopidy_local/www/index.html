@@ -1,43 +1,46 @@
 <!doctype html>
 <html>
   <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Mopidy-Local</title>
+    <link rel="stylesheet" href="/mopidy/mopidy.css" type="text/css" media="screen, print">
     <style>
-      html {
-          background: #f8f8f8;
-          color: #555;
-          font-family: Geneva, Tahoma, Verdana, sans-serif;
-          line-height: 1.4em;
+      #thumbnails {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
+        grid-gap: 2px;
+        line-height: 0%;
       }
-      body {
-          margin: 0 auto;
-          max-width: 600px;
+      #thumbnails a {
+        border: none;
       }
-      h1 {
-          font-weight: 500;
-          line-height: 1.1em;
-      }
-      a {
-          color: #555;
-          text-decoration: none;
-      }
-      img {
-          border: 0;
-          height: 80px;
-          width: 80px;
+      #thumbnails img {
+        border: none;
+        width: 100%;
+        aspect-ratio: 1;
       }
     </style>
   </head>
   <body>
-    <h1>Mopidy-Local</h1>
-    <p>
-      This Web client is used to serve album art extracted from local
-      media files by the Mopidy-Local extension.
-    </p>
-    <div>
-      {% for image in images %}
-        <a href="{{image}}"><img src="{{image}}"></a>
-      {% end %}
+    <div class="box focus">
+      <h1>Mopidy-Local</h1>
+      <p>
+        This Web client is used to serve album art extracted from local
+        media files by the Mopidy-Local extension.
+      </p>
+    </div>
+    <div class="box">
+      <h2>Image cache</h2>
+      <p>Images extracted from local media files will automatically appear
+      here.</p>
+      <div id="thumbnails">
+        {% for image in images %}
+          <a href="{{image}}">
+            <img src="{{image}}" alt="Album art thumbnail" loading="lazy">
+          </a>
+        {% end %}
+      </div>
     </div>
   </body>
 </html>
