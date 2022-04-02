@@ -216,8 +216,11 @@ class LocalStorageProvider:
         if not what:
             raise ValueError("Unknown image type")
         if not data:
+            data_source = path.as_uri()
             with open(path, "rb") as f:
                 data = f.read()
+        else:
+            data_source = "embedded image"
         digest, width, height = hashlib.md5(data).hexdigest(), None, None
         try:
             if what == "png":
@@ -227,13 +230,13 @@ class LocalStorageProvider:
             elif what == "jpeg":
                 width, height = get_image_size_jpeg(data)
         except Exception as e:
-            logger.error("Error getting image size for %r: %r", path, e)
+            logger.error("Error getting image size for %r: %r", data_source, e)
         if width and height:
             name = "%s-%dx%d.%s" % (digest, width, height, what)
         else:
             name = f"{digest}.{what}"
         image_path = self._image_dir / name
         if not image_path.is_file():
-            logger.info(f"Creating file {image_path.as_uri()}")
+            logger.info(f"Creating file {image_path.as_uri()} from {data_source}")
             image_path.write_bytes(data)
         return uritools.urijoin(self._base_uri, name)
