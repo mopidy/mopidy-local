@@ -2,7 +2,7 @@ import logging
 import pathlib
 import time
 
-from mopidy import commands, exceptions
+from mopidy import commands
 from mopidy.audio import scan, tags
 
 from mopidy_local import mtimes, storage, translator
@@ -241,7 +241,7 @@ class ScanCommand(commands.Command):
                     )
                     library.add(track, result.tags, result.duration)
                     logger.debug(f"Added {track.uri}")
-            except exceptions.ScannerError as error:
+            except Exception as error:
                 logger.warning(f"Failed scanning {file_uri}: {error}")
 
             if progress.increment():
