@@ -75,6 +75,7 @@ class LocalStorageProvider:
         self._image_dir = Extension.get_image_dir(config)
         self._base_uri = "/" + Extension.ext_name + "/"
         self._patterns = list(map(str, ext_config["album_art_files"]))
+        self._min_size = ext_config["min_art_size"]
         self._dbpath = self._data_dir / "library.db"
         self._connection = None
 
@@ -195,7 +196,9 @@ class LocalStorageProvider:
             try:
                 # FIXME: gst.Buffer or plain str/bytes type?
                 data = getattr(image, "data", image)
-                images.add(self._get_or_create_image_file(None, data))
+                img_file = self._get_or_create_image_file(None, data)
+                if img_file:
+                    images.add(img_file)
             except Exception as e:
                 logger.warning("Error extracting images for %r: %r", uri, e)
         # look for external album art
@@ -204,7 +207,9 @@ class LocalStorageProvider:
         for pattern in self._patterns:
             for match_path in dir_path.glob(pattern):
                 try:
-                    images.add(self._get_or_create_image_file(match_path))
+                    img_file = self._get_or_create_image_file(match_path)
+                    if img_file:
+                        images.add(img_file)
                 except Exception as e:
                     logger.warning(
                         f"Cannot read image file {match_path.as_uri()}: {e!r}"
@@ -231,6 +236,9 @@ class LocalStorageProvider:
                 width, height = get_image_size_jpeg(data)
         except Exception as e:
             logger.error("Error getting image size for %r: %r", data_source, e)
+        if (width and width < self._min_size) or (height and height < self._min_size):
+            logger.info(f"Ignoring file {data_source}: too small")
+            return None
         if width and height:
             name = "%s-%dx%d.%s" % (digest, width, height, what)
         else:
