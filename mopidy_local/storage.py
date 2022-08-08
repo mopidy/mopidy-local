@@ -237,7 +237,7 @@ class LocalStorageProvider:
         except Exception as e:
             logger.error("Error getting image size for %r: %r", data_source, e)
         if (width and width < self._min_size) or (height and height < self._min_size):
-            logger.info(f"Ignoring file {data_source}: too small")
+            logger.info(f"Ignoring image {data_source}: too small")
             return None
         if width and height:
             name = "%s-%dx%d.%s" % (digest, width, height, what)
