@@ -75,7 +75,7 @@ class LocalStorageProvider:
         self._image_dir = Extension.get_image_dir(config)
         self._base_uri = "/" + Extension.ext_name + "/"
         self._patterns = list(map(str, ext_config["album_art_files"]))
-        self._min_size = ext_config["min_art_size"]
+        self._min_dimensions = ext_config["album_art_min_dimensions"]
         self._dbpath = self._data_dir / "library.db"
         self._connection = None
 
@@ -192,15 +192,16 @@ class LocalStorageProvider:
 
     def _extract_images(self, uri, tags):
         images = set()  # filter duplicate images, e.g. embedded/external
-        for image in tags.get("image", []) + tags.get("preview-image", []):
-            try:
-                # FIXME: gst.Buffer or plain str/bytes type?
-                data = getattr(image, "data", image)
-                img_file = self._get_or_create_image_file(None, data)
-                if img_file:
-                    images.add(img_file)
-            except Exception as e:
-                logger.warning("Error extracting images for %r: %r", uri, e)
+        if tags:
+            for image in tags.get("image", []) + tags.get("preview-image", []):
+                try:
+                    # FIXME: gst.Buffer or plain str/bytes type?
+                    data = getattr(image, "data", image)
+                    img_file = self._get_or_create_image_file(None, data)
+                    if img_file:
+                        images.add(img_file)
+                except Exception as e:
+                    logger.warning("Error extracting images for %r: %r", uri, e)
         # look for external album art
         track_path = translator.local_uri_to_path(uri, self._media_dir)
         dir_path = track_path.parent
@@ -236,7 +237,7 @@ class LocalStorageProvider:
                 width, height = get_image_size_jpeg(data)
         except Exception as e:
             logger.error("Error getting image size for %r: %r", data_source, e)
-        if (width and width < self._min_size) or (height and height < self._min_size):
+        if (width and width < self._min_dimensions) or (height and height < self._min_dimensions):
             logger.info(f"Ignoring image {data_source}: too small")
             return None
         if width and height:

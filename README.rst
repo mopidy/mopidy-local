@@ -119,8 +119,9 @@ The following configuration values are available:
   for external album art. These may contain UNIX shell patterns,
   i.e. ``*``, ``?``, etc.
 
-- ``local/min_art_size``: The minimum required size, in pixels, for an image
-  to be picked up as an album cover.
+- ``local/album_art_min_dimensions``: The minimum required dimensions, in
+  width and height and in pixels, for an image to be picked up as an album
+  cover. Set this to zero to disable this check. It is disabled by default.
 
 
 Usage
@@ -182,13 +183,8 @@ Project resources
 - `Source code <https://github.com/mopidy/mopidy-local>`_
 - `Issue tracker <https://github.com/mopidy/mopidy-local/issues>`_
 - `Changelog <https://github.com/mopidy/mopidy-local/releases>`_
-
-
-Build locally and run
-=====================
-
-    python3 setup.py install --user
-    mopidy local scan
+- `Working on extensions <https://docs.mopidy.com/en/latest/devenv/#working-on-extensions>`_
+- `Extension development <https://docs.mopidy.com/en/latest/extensiondev/>`_
 
 
 Credits

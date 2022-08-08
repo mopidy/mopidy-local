@@ -5,7 +5,7 @@ from unittest import mock
 
 import pykka
 from mopidy import core
-from mopidy.models import SearchResult, Track
+from mopidy.models import SearchResult, Track, Album, Image
 
 from mopidy_local import actor, storage, translator
 from tests import dummy_audio, path_to_data_dir
@@ -20,7 +20,8 @@ class LocalLibraryProviderTest(unittest.TestCase):
             "timeout": 10,
             "max_search_results": 100,
             "use_artist_sortname": False,
-            "album_art_files": [],
+            "album_art_files": ["*.jpg", "*.jpeg", "*.png"],
+            "album_art_min_dimensions": 50
         },
     }
 
@@ -62,6 +63,48 @@ class LocalLibraryProviderTest(unittest.TestCase):
         self.storage.add(track)
         self.storage.close()
         assert [track] == self.library.lookup(uri).get()
+
+    def test_add_track_with_album_cover(self):
+        name = "Test.mp3"
+        uri = translator.path_to_local_track_uri(name, pathlib.Path("/media/dir"))
+        track = Track(name=name, uri=uri, album=Album(uri="local:album:0", name="album #0"))
+        self.storage.begin()
+        self.storage.add(track)
+        self.storage.close()
+
+        # DB assertions
+        assert [track] == self.library.lookup(uri).get()
+        images = self.library.get_images([uri]).get()
+        assert len(images) == 1
+        assert len(images[uri]) == 1
+        expected_name = "2995b49dad376e28a052ecbc0f352cc5-95x95.jpeg"
+        assert images[uri][0] == Image(height=95, width=95, uri=f"/local/{expected_name}")
+
+        # File assertions
+        assert path_to_data_dir(f"local/images").is_dir()
+        assert len(os.listdir(path_to_data_dir(f"local/images"))) == 1
+        assert path_to_data_dir(f"local/images/{expected_name}").exists()
+
+    def test_add_track_with_too_small_album_cover(self):
+        # Change min size so that the 95x95 image is ignored
+        self.storage._min_dimensions = 100
+
+        name = "Test.mp3"
+        uri = translator.path_to_local_track_uri(name, pathlib.Path("/media/dir"))
+        track = Track(name=name, uri=uri, album=Album(uri="local:album:0", name="album #0"))
+        self.storage.begin()
+        self.storage.add(track)
+        self.storage.close()
+
+        # DB assertions
+        assert [track] == self.library.lookup(uri).get()
+        images = self.library.get_images([uri]).get()
+        assert len(images) == 1
+        assert len(images[uri]) == 0
+
+        # File assertions
+        assert path_to_data_dir(f"local/images").is_dir()
+        assert not os.listdir(path_to_data_dir(f"local/images"))
 
     def test_clear(self):
         self.storage.begin()

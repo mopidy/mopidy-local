@@ -8,4 +8,4 @@
 /build/
 /dist/
 /docs/_build/
-/tests/data/
+/tests/data/local/
