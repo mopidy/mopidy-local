@@ -241,7 +241,7 @@ def dates(c, format="%Y-%m-%d"):
          WHERE date IS NOT NULL
          ORDER BY date
         """,
-            [format],
+                [format],
             ),
         )
     )
