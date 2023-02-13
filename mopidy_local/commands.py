@@ -228,8 +228,10 @@ class ScanCommand(commands.Command):
                     )
                 else:
                     if result.duration is None:
-                        logger.warning(f"Failed scanning {file_uri}: proceeding without duration information")
-
+                        logger.warning(
+                            f"Failed scanning {file_uri}: "
+                            "proceeding without duration information"
+                        )
                     local_uri = translator.path_to_local_track_uri(
                         absolute_path, media_dir
                     )
