@@ -25,7 +25,6 @@ def genre_ref(genre):
 
 
 class LocalLibraryProvider(backend.LibraryProvider):
-
     ROOT_DIRECTORY_URI = "local:directory"
 
     root_directory = models.Ref.directory(uri=ROOT_DIRECTORY_URI, name="Local media")
