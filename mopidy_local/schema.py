@@ -236,7 +236,7 @@ def dates(c, format="%Y-%m-%d"):
             operator.itemgetter(0),
             c.execute(
                 """
-        SELECT DISTINCT strftime(?, date) AS date
+        SELECT DISTINCT(strftime(?, substr(date || '-01-01', 1, 10))) AS date
           FROM track
          WHERE date IS NOT NULL
          ORDER BY date
