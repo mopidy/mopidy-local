@@ -23,14 +23,10 @@ class SchemaTest(unittest.TestCase):
         Track(uri="local:track:1", name="track #1", artists=[artists[0]]),
         Track(uri="local:track:2", name="track #2", album=albums[0]),
         Track(uri="local:track:3", name="track #3", album=albums[1]),
-        Track(
-            uri="local:track:4",
-            name="track #4",
-            album=albums[2],
-            composers=[artists[0]],
-            performers=[artists[0]],
-            musicbrainz_id="1234a-567b",
-        ),
+        Track(uri="local:track:4", name="track #4", album=albums[2],
+            composers=[artists[0]], performers=[artists[0]], musicbrainz_id="1234a-567b"),
+        Track(uri="local:track:5", name="track #5", date="2015"),
+        Track(uri="local:track:6", name="track #6", date="2023-02-15"),
     ]
 
     def setUp(self):
@@ -77,7 +73,8 @@ class SchemaTest(unittest.TestCase):
             schema.list_distinct(self.connection, "performer"),
         )
         self.assertEqual(
-            [self.tracks[0].date], schema.list_distinct(self.connection, "date")
+            [self.tracks[0].date, self.tracks[5].date, self.tracks[6].date ],
+            schema.list_distinct(self.connection, "date")
         )
         self.assertEqual(
             [self.tracks[0].genre], schema.list_distinct(self.connection, "genre")
@@ -224,6 +221,14 @@ class SchemaTest(unittest.TestCase):
                 composer=self.artists[0].uri,
                 performer=self.artists[0].uri,
             )
+
+    def test_dates(self):
+        # different date fields in track list: 3
+        dates = schema.dates(self.connection)
+        assert 3 == len(dates)
+        # different years in date fields: 2
+        dates = schema.dates(self.connection, format="%Y")
+        assert 2 == len(dates)
 
     def test_delete(self):
         c = self.connection
