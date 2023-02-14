@@ -26,7 +26,7 @@ SELECT docid                            AS docid,
        musicbrainz_id                   AS musicbrainz_trackid,
        album_musicbrainz_id             AS musicbrainz_albumid,
        artist_musicbrainz_id            AS musicbrainz_artistid
-       
+
  FROM tracks;
 
 DROP TABLE fts;
