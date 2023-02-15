@@ -20,9 +20,9 @@ class SchemaTest(unittest.TestCase):
     ]
     tracks = [
         Track(uri="local:track:0", name="track #0", date="2015-03-15", genre="Rock"),
-        Track(uri="local:track:1", name="track #1", artists=[artists[0]]),
-        Track(uri="local:track:2", name="track #2", album=albums[0]),
-        Track(uri="local:track:3", name="track #3", album=albums[1]),
+        Track(uri="local:track:1", name="track #1", date="2014", artists=[artists[0]]),
+        Track(uri="local:track:2", name="track #2", date="2020-10", album=albums[0]),
+        Track(uri="local:track:3", name="track #3", date="2020-10-01", album=albums[1]),
         Track(
             uri="local:track:4",
             name="track #4",
@@ -77,7 +77,8 @@ class SchemaTest(unittest.TestCase):
             schema.list_distinct(self.connection, "performer"),
         )
         self.assertEqual(
-            [self.tracks[0].date], schema.list_distinct(self.connection, "date")
+            [track.date for track in self.tracks if track.date],
+            schema.list_distinct(self.connection, "date"),
         )
         self.assertEqual(
             [self.tracks[0].genre], schema.list_distinct(self.connection, "genre")
@@ -94,6 +95,14 @@ class SchemaTest(unittest.TestCase):
             [self.albums[0].musicbrainz_id],
             schema.list_distinct(self.connection, "musicbrainz_albumid"),
         )
+
+    def test_dates(self):
+        with self.connection as c:
+            results = schema.dates(c)
+            assert ["2014-01-01", "2015-03-15", "2020-10-01"] == results
+
+            results = schema.dates(c, format="%Y")
+            assert ["2014", "2015", "2020"] == results
 
     def test_lookup_track(self):
         with self.connection as c:
