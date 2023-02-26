@@ -207,19 +207,20 @@ frontends should attempt to derive any meaning from.* That said, it's necessary
 to have a sufficient knowledge of Mopidy-Local URIs to customize the
 ``directories`` setting properly.
 
-Browsing URIs starting with ``local:artist`` returns references to albums with
-the given artist and tracks with that artist. Browsing URIs starting with
-``local:album`` returns references to the album tracks. Browsing URIs starting
-with ``local:track`` is not supported.
+Browsing URIs starting with ``local:artist`` returns references to
+albums and tracks with the given artist. Browsing URIs starting with
+``local:album`` returns references to the album tracks. Browsing URIs
+starting with ``local:track`` is not supported.
 
 Other URIs supported for browsing start with ``local:directory``. The returned
 references are specified through "query parameters":
 
-- ``local:directory``: References to top levels directories.
+- ``local:directory``: References to the top levels directories.
 
-- ``local:directory?type=tracks``: References tracks. Multiple parameters can be
-  added to filter the tracks: ``album``, ``albumartist``, ``artist``,
-  ``composer``, ``date``, ``genre``, ``performer``, and ``max-age``.
+- ``local:directory?type=tracks``: References all tracks. Multiple
+  parameters can be added to filter the referenced tracks: ``album``,
+  ``albumartist``, ``artist``, ``composer``, ``date``, ``genre``,
+  ``performer``, and ``max-age``.
 
 - ``local:directory?type=date``: References to directories grouping tracks by
   date and album. Dates are transformed according to the optional parameter
@@ -231,10 +232,11 @@ references are specified through "query parameters":
 
 - ``local:directory?type=album``: References to all albums.
 
-- ``local:directory?type=album&PARAM=VALUE``: References to directories
-  grouping tracks matching the given criteria by album.  ``PARAM`` must be one
-  of ``albumartist``, ``artist``, ``composer``, ``date``, ``genre``,
-  ``performer``, ``max-age``. Their URIs start with
+- ``local:directory?type=album&PARAM=VALUE``: References to
+  directories grouping tracks matching the given criteria.  ``PARAM``
+  must be one of ``albumartist``, ``artist``, ``composer``, ``date``,
+  ``genre``, ``performer``, ``max-age``. The referenced directories
+  group the selected tracks by album; Their URIs start with
   ``local::directory?PARAM=VALUE&type=track&album=local:album:``.
 
 - ``local:directory?type=artist``: References to all artists.
@@ -248,34 +250,44 @@ references are specified through "query parameters":
   of the album with given URI. Its URI starts with
   ``local:directory?album=URI&type=track``.
 
-- ``local:directory?albumartist=URI``: References to directories grouping tracks
-  whose albumartist tag has given URI by album. Their URIs start with
+- ``local:directory?albumartist=URI``: References to directories
+  grouping tracks whose albumartist tag has given URI. The referenced
+  directories group the selected tracks by album; Their URIs start
+  with
   ``local:directory?albumartist=URI&type=track&album=local:album:``.
 
-- ``local:directory?artist=URI``: References to directories grouping tracks
-  whose artist has given URI by album. Their URIs start with
+- ``local:directory?artist=URI``: References to directories grouping
+  tracks whose artist has given URI. The referenced directories group
+  the selected tracks by album; Their URIs start with
   ``local:directory?artist=URI&type=track&album=local:album:``.
 
-- ``local:directory?composer=URI``: References to directories grouping tracks
-  whose composer has given URI by album. Their URIs start with
+- ``local:directory?composer=URI``: References to directories grouping
+  tracks whose composer has given URI. The referenced directories
+  group the selected tracks by album; Their URIs start with
   ``local:directory?composer=URI&type=track&album=local:album:``.
 
-- ``local:directory?date=DATE``: References to directories grouping tracks whose
-  date match DATE by album. Their URIs start with
-  ``local:directory?date=DATE&type=track&album=local:album:``. The match is to
-  be interpreted as in a ``LIKE`` SQL statement.
+- ``local:directory?date=DATE``: References to directories grouping
+  tracks whose date match DATE. The referenced directories group the
+  selected tracks by album; Their URIs start with
+  ``local:directory?date=DATE&type=track&album=local:album:``. The
+  match is to be interpreted as in a ``LIKE`` SQL statement.
 
-- ``local:directory?genre=GENRE``: References to directories grouping tracks
-  whose genre is GENRE by album. Their URIs start with
+- ``local:directory?genre=GENRE``: References to directories grouping
+  tracks whose genre is GENRE. The referenced directories group the
+  selected tracks by album; Their URIs start with
   ``local:directory?genre=GENRE&type=track&album=local:album:``.
 
-- ``local:directory?performer=URI``: References to directories grouping tracks
-  whose performer has given URI by album. Their URIs start with
+- ``local:directory?performer=URI``: References to directories
+  grouping tracks whose performer has given URI. The referenced
+  directories group the selected tracks by album; Their URIs start
+  with
   ``local:directory?performer=URI&type=track&album=local:album:``.
 
-- ``local:directory?max-age=SECONDS``: References to directories grouping tracks
-  whose date is newer than SECONDS seconds by album. Their URIs start with
-  ``local:directory?genre=GENRE&type=track&album=local:album:``.
+- ``local:directory?max-age=SECONDS``: References to directories
+  grouping tracks whose "last modified" date is newer than SECONDS
+  seconds. The referenced directories group the selected tracks by
+  album; Their URIs start with
+  ``local:directory?max-age=SECONDS&type=track&album=local:album:``.
 
 Project resources
 =================
