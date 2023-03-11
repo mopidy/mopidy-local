@@ -30,6 +30,7 @@ Table of contents
   - `Generating a library`_
   - `Updating the library`_
   - `Clearing the library`_
+  - `Library layout`_
 
 - `Project resources`_
 - Credits_
