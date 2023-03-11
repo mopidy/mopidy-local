@@ -237,7 +237,7 @@ references are specified through "query parameters":
   must be one of ``albumartist``, ``artist``, ``composer``, ``date``,
   ``genre``, ``performer``, ``max-age``. The referenced directories
   group the selected tracks by album; Their URIs start with
-  ``local::directory?PARAM=VALUE&type=track&album=local:album:``.
+  ``local:directory?PARAM=VALUE&type=track&album=local:album:``.
 
 - ``local:directory?type=artist``: References to all artists.
 
