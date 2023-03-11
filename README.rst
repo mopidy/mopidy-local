@@ -228,7 +228,7 @@ references are specified through "query parameters":
   with ``local:directory?date=``.
 
 - ``local:directory?type=genre``: References to directories named after genres
-  found among all tracks. Their URIs start with ``local::directory?genre=``.
+  found among all tracks. Their URIs start with ``local:directory?genre=``.
 
 - ``local:directory?type=album``: References to all albums.
 
