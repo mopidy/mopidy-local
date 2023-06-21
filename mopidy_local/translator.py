@@ -32,7 +32,9 @@ def path_to_file_uri(path: Union[str, bytes, Path]) -> str:
     return ppath.as_uri()
 
 
-def path_to_local_track_uri(path: Union[str, bytes, Path], media_dir: Path) -> str:
+def path_to_local_track_uri(
+    path: Union[str, bytes, Path], media_dir: Path
+) -> str:
     """Convert path to local track URI."""
     ppath = Path(os.fsdecode(path))
     if ppath.is_absolute():
