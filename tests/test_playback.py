@@ -8,14 +8,22 @@ from mopidy.models import TlTrack, Track
 
 from mopidy_local import actor
 from unittest import mock
-from tests import dummy_audio, generate_song, path_to_data_dir, populate_tracklist
+from tests import (
+    dummy_audio,
+    generate_song,
+    path_to_data_dir,
+    populate_tracklist,
+)
 
 # TODO Test 'playlist repeat', e.g. repeat=1,single=0
 
 
 class LocalPlaybackProviderTest(unittest.TestCase):
     config = {
-        "core": {"data_dir": path_to_data_dir(""), "max_tracklist_length": 10000},
+        "core": {
+            "data_dir": path_to_data_dir(""),
+            "max_tracklist_length": 10000,
+        },
         "local": {
             "media_dir": path_to_data_dir(""),
             "directories": [],
@@ -552,7 +560,9 @@ class LocalPlaybackProviderTest(unittest.TestCase):
 
     @populate_tracklist
     @mock.patch("random.shuffle")
-    def test_end_of_track_track_with_random_after_append_playlist(self, shuffle_mock):
+    def test_end_of_track_track_with_random_after_append_playlist(
+        self, shuffle_mock
+    ):
         shuffle_mock.side_effect = lambda tracks: tracks.reverse()
 
         self.tracklist.set_random(True)

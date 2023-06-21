@@ -6,7 +6,7 @@ Mopidy-Local
     :target: https://pypi.org/project/Mopidy-Local/
     :alt: Latest PyPI version
 
-.. image:: https://img.shields.io/github/workflow/status/mopidy/mopidy-local/CI
+.. image:: https://img.shields.io/github/actions/workflow/status/mopidy/mopidy-local/ci.yml?branch=main
     :target: https://github.com/mopidy/mopidy-local/actions
     :alt: CI build status
 

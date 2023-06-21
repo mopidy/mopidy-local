@@ -7,12 +7,20 @@ from mopidy.core import PlaybackState
 from mopidy.models import Playlist, Track
 
 from mopidy_local import actor
-from tests import dummy_audio, generate_song, path_to_data_dir, populate_tracklist
+from tests import (
+    dummy_audio,
+    generate_song,
+    path_to_data_dir,
+    populate_tracklist,
+)
 
 
 class LocalTracklistProviderTest(unittest.TestCase):
     config = {
-        "core": {"data_dir": path_to_data_dir(""), "max_tracklist_length": 10000},
+        "core": {
+            "data_dir": path_to_data_dir(""),
+            "max_tracklist_length": 10000,
+        },
         "local": {
             "media_dir": path_to_data_dir(""),
             "directories": [],
@@ -114,7 +122,9 @@ class LocalTracklistProviderTest(unittest.TestCase):
         assert track == tl_tracks[1].track
 
     def test_filter_by_uri_returns_nothing_if_no_match(self):
-        self.controller.playlist = Playlist(tracks=[Track(uri="z"), Track(uri="y")])
+        self.controller.playlist = Playlist(
+            tracks=[Track(uri="z"), Track(uri="y")]
+        )
         assert [] == self.controller.filter({"uri": ["a"]}).get()
 
     def test_filter_by_multiple_criteria_returns_elements_matching_all(self):

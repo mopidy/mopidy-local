@@ -107,7 +107,9 @@ class ScanCommand(commands.Command):
 
     def _find_files(self, *, media_dir, follow_symlinks):
         logger.info(f"Finding files in {media_dir.as_uri()} ...")
-        file_mtimes, file_errors = mtimes.find_mtimes(media_dir, follow=follow_symlinks)
+        file_mtimes, file_errors = mtimes.find_mtimes(
+            media_dir, follow=follow_symlinks
+        )
         logger.info(f"Found {len(file_mtimes)} files in {media_dir.as_uri()}")
 
         if file_errors:
@@ -169,7 +171,9 @@ class ScanCommand(commands.Command):
         ):
             if included_file_exts:
                 if relative_path.suffix.lower() in included_file_exts:
-                    logger.debug(f"Added {file_uri}: File extension on included list")
+                    logger.debug(
+                        f"Added {file_uri}: File extension on included list"
+                    )
                     return True
                 else:
                     logger.debug(
@@ -178,7 +182,9 @@ class ScanCommand(commands.Command):
                     return False
             else:
                 if relative_path.suffix.lower() in excluded_file_exts:
-                    logger.debug(f"Skipped {file_uri}: File extension on excluded list")
+                    logger.debug(
+                        f"Skipped {file_uri}: File extension on excluded list"
+                    )
                     return False
                 else:
                     logger.debug(
@@ -193,17 +199,30 @@ class ScanCommand(commands.Command):
             if (
                 not _is_hidden_file(relative_path, file_uri)
                 and _extension_filters(
-                    relative_path, file_uri, included_file_exts, excluded_file_exts
+                    relative_path,
+                    file_uri,
+                    included_file_exts,
+                    excluded_file_exts,
                 )
                 and absolute_path not in files_in_library
             ):
                 files_to_update.add(absolute_path)
 
-        logger.info(f"Found {len(files_to_update)} tracks which need to be updated")
+        logger.info(
+            f"Found {len(files_to_update)} tracks which need to be updated"
+        )
         return files_to_update
 
     def _scan_metadata(
-        self, *, media_dir, file_mtimes, files, library, timeout, flush_threshold, limit
+        self,
+        *,
+        media_dir,
+        file_mtimes,
+        files,
+        library,
+        timeout,
+        flush_threshold,
+        limit,
     ):
         logger.info("Scanning...")
 
@@ -237,7 +256,9 @@ class ScanCommand(commands.Command):
                     )
                     mtime = file_mtimes.get(absolute_path)
                     track = tags.convert_tags_to_track(result.tags).replace(
-                        uri=local_uri, length=result.duration, last_modified=mtime
+                        uri=local_uri,
+                        length=result.duration,
+                        last_modified=mtime,
                     )
                     library.add(track, result.tags, result.duration)
                     logger.debug(f"Added {track.uri}")
