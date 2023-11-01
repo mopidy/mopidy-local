@@ -13,7 +13,10 @@ from tests import dummy_audio, path_to_data_dir
 
 class LocalLibraryProviderTest(unittest.TestCase):
     config = {
-        "core": {"data_dir": path_to_data_dir(""), "max_tracklist_length": 10000},
+        "core": {
+            "data_dir": path_to_data_dir(""),
+            "max_tracklist_length": 10000,
+        },
         "local": {
             "media_dir": path_to_data_dir(""),
             "directories": [],
@@ -45,7 +48,9 @@ class LocalLibraryProviderTest(unittest.TestCase):
 
     def test_add_noname_ascii(self):
         name = "Test.mp3"
-        uri = translator.path_to_local_track_uri(name, pathlib.Path("/media/dir"))
+        uri = translator.path_to_local_track_uri(
+            name, pathlib.Path("/media/dir")
+        )
         track = Track(name=name, uri=uri)
         self.storage.begin()
         self.storage.add(track)

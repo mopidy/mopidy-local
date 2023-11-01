@@ -6,7 +6,7 @@ Mopidy-Local
     :target: https://pypi.org/project/Mopidy-Local/
     :alt: Latest PyPI version
 
-.. image:: https://img.shields.io/github/workflow/status/mopidy/mopidy-local/CI
+.. image:: https://img.shields.io/github/actions/workflow/status/mopidy/mopidy-local/ci.yml?branch=main
     :target: https://github.com/mopidy/mopidy-local/actions
     :alt: CI build status
 
@@ -30,6 +30,7 @@ Table of contents
   - `Generating a library`_
   - `Updating the library`_
   - `Clearing the library`_
+  - `Library layout`_
 
 - `Project resources`_
 - Credits_
@@ -106,7 +107,7 @@ The following configuration values are available:
   This config value has no effect if ``local/included_file_extensions`` is set.
 
 - ``local/directories``: List of top-level directory names and URIs
-  for browsing.
+  for browsing. See below.
 
 - ``local/timeout``: Database connection timeout in seconds.
 
@@ -172,6 +173,122 @@ To delete your local images and clear your local library::
 
 A prompt will ask you to confirm this irreversible operation.
 
+
+Library layout
+--------------
+
+The exposed library has a root directory and nine top-level directories defined
+under the root directory:
+
+- Albums
+- Artists
+- Composers
+- Genres
+- Performers
+- Release Years
+- Tracks
+- Last Week's Updates
+- Last Month's Updates
+
+This can be configured through the ``directories`` setting. It's expected to be a
+list of space separated name and URI supported for browsing, eg::
+
+  directories =
+      Albums                  local:directory?type=album
+      Artists                 local:directory?type=artist
+      Composers               local:directory?type=artist&role=composer
+      Tracks                  local:directory?type=track
+      Last Week's Updates     local:directory?max-age=604800
+
+URIs supported for browsing
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+*Remember that URIs are opaque values that neither Mopidy’s core layer or Mopidy
+frontends should attempt to derive any meaning from.* That said, it's necessary
+to have a sufficient knowledge of Mopidy-Local URIs to customize the
+``directories`` setting properly.
+
+Browsing URIs starting with ``local:artist`` returns references to
+albums and tracks with the given artist. Browsing URIs starting with
+``local:album`` returns references to the album tracks. Browsing URIs
+starting with ``local:track`` is not supported.
+
+Other URIs supported for browsing start with ``local:directory``. The returned
+references are specified through "query parameters":
+
+- ``local:directory``: References to the top levels directories.
+
+- ``local:directory?type=tracks``: References all tracks. Multiple
+  parameters can be added to filter the referenced tracks: ``album``,
+  ``albumartist``, ``artist``, ``composer``, ``date``, ``genre``,
+  ``performer``, and ``max-age``.
+
+- ``local:directory?type=date``: References to directories grouping tracks by
+  date and album. Dates are transformed according to the optional parameter
+  ``FORMAT`` which default to ``%Y-%m-%d``. The URIs of the references start
+  with ``local:directory?date=``.
+
+- ``local:directory?type=genre``: References to directories named after genres
+  found among all tracks. Their URIs start with ``local:directory?genre=``.
+
+- ``local:directory?type=album``: References to all albums.
+
+- ``local:directory?type=album&PARAM=VALUE``: References to
+  directories grouping tracks matching the given criteria.  ``PARAM``
+  must be one of ``albumartist``, ``artist``, ``composer``, ``date``,
+  ``genre``, ``performer``, ``max-age``. The referenced directories
+  group the selected tracks by album; Their URIs start with
+  ``local:directory?PARAM=VALUE&type=track&album=local:album:``.
+
+- ``local:directory?type=artist``: References to all artists.
+
+- ``local:directory?type=artist&role=ROLE``: References to directories with URIs
+  ``local:directory?ROLE=URI`` where ``URI`` varies among all URIs starting with
+  ``local:artist`` build from all tracks tag corresponding to ``ROLE``. ``ROLE``
+  is one of ``albumartist``, ``artist``, ``composer``, or ``performer``.
+
+- ``local:directory?album=URI``: A reference to a directory grouping the tracks
+  of the album with given URI. Its URI starts with
+  ``local:directory?album=URI&type=track``.
+
+- ``local:directory?albumartist=URI``: References to directories
+  grouping tracks whose albumartist tag has given URI. The referenced
+  directories group the selected tracks by album; Their URIs start
+  with
+  ``local:directory?albumartist=URI&type=track&album=local:album:``.
+
+- ``local:directory?artist=URI``: References to directories grouping
+  tracks whose artist has given URI. The referenced directories group
+  the selected tracks by album; Their URIs start with
+  ``local:directory?artist=URI&type=track&album=local:album:``.
+
+- ``local:directory?composer=URI``: References to directories grouping
+  tracks whose composer has given URI. The referenced directories
+  group the selected tracks by album; Their URIs start with
+  ``local:directory?composer=URI&type=track&album=local:album:``.
+
+- ``local:directory?date=DATE``: References to directories grouping
+  tracks whose date match DATE. The referenced directories group the
+  selected tracks by album; Their URIs start with
+  ``local:directory?date=DATE&type=track&album=local:album:``. The
+  match is to be interpreted as in a ``LIKE`` SQL statement.
+
+- ``local:directory?genre=GENRE``: References to directories grouping
+  tracks whose genre is GENRE. The referenced directories group the
+  selected tracks by album; Their URIs start with
+  ``local:directory?genre=GENRE&type=track&album=local:album:``.
+
+- ``local:directory?performer=URI``: References to directories
+  grouping tracks whose performer has given URI. The referenced
+  directories group the selected tracks by album; Their URIs start
+  with
+  ``local:directory?performer=URI&type=track&album=local:album:``.
+
+- ``local:directory?max-age=SECONDS``: References to directories
+  grouping tracks whose "last modified" date is newer than SECONDS
+  seconds. The referenced directories group the selected tracks by
+  album; Their URIs start with
+  ``local:directory?max-age=SECONDS&type=track&album=local:album:``.
 
 Project resources
 =================

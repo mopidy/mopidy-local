@@ -236,7 +236,7 @@ def dates(c, format="%Y-%m-%d"):
             operator.itemgetter(0),
             c.execute(
                 """
-        SELECT DISTINCT strftime(?, date) AS date
+        SELECT DISTINCT(strftime(?, substr(date || '-01-01', 1, 10))) AS date
           FROM track
          WHERE date IS NOT NULL
          ORDER BY date
@@ -258,7 +258,10 @@ def exists(c, uri):
 
 def browse(c, type=None, order=("type", "name COLLATE NOCASE"), **kwargs):
     filters, params = _filters(_BROWSE_FILTERS[type], **kwargs)
-    sql = _BROWSE_QUERIES[type] % (" AND ".join(filters) or "1", ", ".join(order))
+    sql = _BROWSE_QUERIES[type] % (
+        " AND ".join(filters) or "1",
+        ", ".join(order),
+    )
     logger.debug("SQLite browse query %r: %s", params, sql)
     return [Ref(**row) for row in c.execute(sql, params)]
 

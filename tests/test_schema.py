@@ -10,19 +10,43 @@ DBPATH = ":memory:"
 
 class SchemaTest(unittest.TestCase):
     artists = [
-        Artist(uri="local:artist:0", name="artist #0", musicbrainz_id="1234a-987c"),
+        Artist(
+            uri="local:artist:0", name="artist #0", musicbrainz_id="1234a-987c"
+        ),
         Artist(uri="local:artist:1", name="artist #1"),
     ]
     albums = [
-        Album(uri="local:album:0", name="album #0", musicbrainz_id="1234a-3421d"),
+        Album(
+            uri="local:album:0", name="album #0", musicbrainz_id="1234a-3421d"
+        ),
         Album(uri="local:album:1", name="album #1", artists=[artists[0]]),
         Album(uri="local:album:2", name="album #2", artists=[artists[1]]),
     ]
     tracks = [
-        Track(uri="local:track:0", name="track #0", date="2015-03-15", genre="Rock"),
-        Track(uri="local:track:1", name="track #1", artists=[artists[0]]),
-        Track(uri="local:track:2", name="track #2", album=albums[0]),
-        Track(uri="local:track:3", name="track #3", album=albums[1]),
+        Track(
+            uri="local:track:0",
+            name="track #0",
+            date="2015-03-15",
+            genre="Rock",
+        ),
+        Track(
+            uri="local:track:1",
+            name="track #1",
+            date="2014",
+            artists=[artists[0]],
+        ),
+        Track(
+            uri="local:track:2",
+            name="track #2",
+            date="2020-10",
+            album=albums[0],
+        ),
+        Track(
+            uri="local:track:3",
+            name="track #3",
+            date="2020-10-01",
+            album=albums[1],
+        ),
         Track(
             uri="local:track:4",
             name="track #4",
@@ -77,10 +101,12 @@ class SchemaTest(unittest.TestCase):
             schema.list_distinct(self.connection, "performer"),
         )
         self.assertEqual(
-            [self.tracks[0].date], schema.list_distinct(self.connection, "date")
+            [track.date for track in self.tracks if track.date],
+            schema.list_distinct(self.connection, "date"),
         )
         self.assertEqual(
-            [self.tracks[0].genre], schema.list_distinct(self.connection, "genre")
+            [self.tracks[0].genre],
+            schema.list_distinct(self.connection, "genre"),
         )
         self.assertEqual(
             [self.tracks[4].musicbrainz_id],
@@ -94,6 +120,14 @@ class SchemaTest(unittest.TestCase):
             [self.albums[0].musicbrainz_id],
             schema.list_distinct(self.connection, "musicbrainz_albumid"),
         )
+
+    def test_dates(self):
+        with self.connection as c:
+            results = schema.dates(c)
+            assert ["2014-01-01", "2015-03-15", "2020-10-01"] == results
+
+            results = schema.dates(c, format="%Y")
+            assert ["2014", "2015", "2020"] == results
 
     def test_lookup_track(self):
         with self.connection as c:
@@ -149,7 +183,9 @@ class SchemaTest(unittest.TestCase):
         ]:
             for exact in (True, False):
                 with self.connection as c:
-                    tracks = schema.search_tracks(c, query, 10, 0, exact, filters)
+                    tracks = schema.search_tracks(
+                        c, query, 10, 0, exact, filters
+                    )
                 self.assertCountEqual(results, map(lambda t: t.uri, tracks))
 
     def test_fulltext_search(self):
