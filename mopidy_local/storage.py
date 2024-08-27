@@ -1,5 +1,4 @@
 import hashlib
-import imghdr
 import logging
 import pathlib
 import shutil
@@ -21,7 +20,6 @@ def check_dirs_and_files(config):
         )
 
 
-# would be nice to have these in imghdr...
 def get_image_size_png(data):
     return struct.unpack(">ii", data[16:24])
 
@@ -58,13 +56,25 @@ def get_image_size_jpeg(data):
     return width, height
 
 
-def test_jpeg(data, file_handle):
-    # Additional JPEG detection looking for JPEG SOI marker
-    if data[:2] == b"\xff\xd8":
+MIN_BYTES_FOR_IMAGE_TYPE = 8
+
+
+def get_image_type_from_header(header: bytes) -> str:
+    # original source: https://github.com/sphinx-doc/sphinx/commit/a502e7
+
+    if len(header) < MIN_BYTES_FOR_IMAGE_TYPE:
+        raise ValueError("Unknown image type")
+
+    if header.startswith(b"\x89PNG\r\n\x1A\n"):
+        return "png"
+
+    if header.startswith((b"GIF87a", b"GIF89a")):
+        return "gif"
+
+    if header.startswith(b"\xFF\xD8"):
         return "jpeg"
 
-
-imghdr.tests.append(test_jpeg)
+    raise ValueError("Unknown image type")
 
 
 class LocalStorageProvider:
@@ -214,15 +224,18 @@ class LocalStorageProvider:
         return images
 
     def _get_or_create_image_file(self, path, data=None):
-        what = imghdr.what(path, data)
-        if not what:
-            raise ValueError("Unknown image type")
         if not data:
-            data_source = path.as_uri()
             with open(path, "rb") as f:
-                data = f.read()
+                header = f.read(MIN_BYTES_FOR_IMAGE_TYPE)
+
+                what = get_image_type_from_header(header)
+                data_source = path.as_uri()
+                data = header + f.read()
         else:
+            header = data[:MIN_BYTES_FOR_IMAGE_TYPE]
+            what = get_image_type_from_header(header)
             data_source = "embedded image"
+
         digest, width, height = hashlib.md5(data).hexdigest(), None, None
         try:
             if what == "png":
