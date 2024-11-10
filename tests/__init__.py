@@ -4,7 +4,7 @@ import pathlib
 from mopidy.internal import deprecation
 
 
-def path_to_data_dir(name):
+def path_to_data_dir(name) -> pathlib.Path:
     path = pathlib.Path(__file__).parent / "data" / name
     return path.resolve()
 
@@ -31,7 +31,7 @@ class IsA:
         try:
             return isinstance(rhs, self.klass)
         except TypeError:
-            return type(rhs) == type(self.klass)  # noqa
+            return type(rhs) is type(self.klass)
 
     def __ne__(self, rhs):
         return not self.__eq__(rhs)

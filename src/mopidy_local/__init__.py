@@ -44,7 +44,7 @@ class Extension(ext.Extension):
 
         return LocalCommand()
 
-    def webapp(self, config, core):
+    def webapp(self, config, core):  # noqa: ARG002
         from .web import ImageHandler, IndexHandler
 
         image_dir = self.get_image_dir(config)

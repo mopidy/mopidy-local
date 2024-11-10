@@ -1,7 +1,6 @@
 import logging
 
 import pykka
-
 from mopidy import backend
 
 from mopidy_local import storage

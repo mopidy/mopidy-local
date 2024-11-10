@@ -5,7 +5,6 @@ tests of the core and backends.
 """
 
 import pykka
-
 from mopidy import audio
 
 

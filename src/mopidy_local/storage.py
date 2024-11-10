@@ -16,7 +16,7 @@ def check_dirs_and_files(config):
     if not pathlib.Path(config["local"]["media_dir"]).is_dir():
         logger.warning(
             "Local media dir %s does not exist or we lack permissions to the "
-            "directory or one of its parents" % config["local"]["media_dir"]
+            "directory or one of its parents" % config["local"]["media_dir"],
         )
 
 
@@ -28,13 +28,13 @@ def get_image_size_gif(data):
     return struct.unpack("<HH", data[6:10])
 
 
-def model_uri(type, model):
-    if type == "album":
+def model_uri(kind, model):
+    if kind == "album":
         # ignore num_tracks for multi-disc albums
-        digest = hashlib.md5(str(model.replace(num_tracks=None)).encode())
+        digest = hashlib.md5(str(model.replace(num_tracks=None)).encode())  # noqa: S324
     else:
-        digest = hashlib.md5(str(model).encode())
-    return "local:{}:md5:{}".format(type, digest.hexdigest())
+        digest = hashlib.md5(str(model).encode())  # noqa: S324
+    return f"local:{kind}:md5:{digest.hexdigest()}"
 
 
 def get_image_size_jpeg(data):
@@ -42,10 +42,10 @@ def get_image_size_jpeg(data):
     index = 0
     ftype = 0
     size = 2
-    while not 0xC0 <= ftype <= 0xCF:
+    while not 0xC0 <= ftype <= 0xCF:  # noqa: PLR2004
         index += size
         ftype = data[index]
-        while ftype == 0xFF:
+        while ftype == 0xFF:  # noqa: PLR2004
             index += 1
             ftype = data[index]
         index += 1
@@ -97,10 +97,10 @@ class LocalStorageProvider:
     def begin(self):
         return schema.tracks(self._connect())
 
-    def add(self, track, tags=None, duration=None):
+    def add(self, track, tags=None, duration=None):  # noqa: ARG002
         logger.debug("Adding track: %s", track)
         images = None
-        if track.album and track.album.name:  # FIXME: album required
+        if track.album and track.album.name:  # TODO: album required
             uri = translator.local_uri_to_file_uri(track.uri, self._media_dir)
             try:
                 images = self._extract_images(track.uri, tags)
@@ -137,15 +137,16 @@ class LocalStorageProvider:
         try:
             shutil.rmtree(self._image_dir)
             self._image_dir.mkdir()
-        except IOError as e:
+        except OSError as e:
             logger.warning("Error clearing image directory: %s", e)
         logger.info("Clearing SQLite database")
         try:
             schema.clear(self._connect())
-            return True
         except sqlite3.Error as e:
             logger.error("Error clearing SQLite database: %s", e)
             return False
+        else:
+            return True
 
     def _connect(self):
         if not self._connection:
@@ -203,7 +204,7 @@ class LocalStorageProvider:
         images = set()  # filter duplicate images, e.g. embedded/external
         for image in tags.get("image", []) + tags.get("preview-image", []):
             try:
-                # FIXME: gst.Buffer or plain str/bytes type?
+                # TODO: Is this a gst.Buffer or plain str/bytes type?
                 data = getattr(image, "data", image)
                 images.add(self._get_or_create_image_file(None, data))
             except Exception as e:
@@ -217,7 +218,7 @@ class LocalStorageProvider:
                     images.add(self._get_or_create_image_file(match_path))
                 except Exception as e:
                     logger.warning(
-                        f"Cannot read image file {match_path.as_uri()}: {e!r}"
+                        f"Cannot read image file {match_path.as_uri()}: {e!r}",
                     )
         return images
 
@@ -234,7 +235,8 @@ class LocalStorageProvider:
             what = get_image_type_from_header(header)
             data_source = "embedded image"
 
-        digest, width, height = hashlib.md5(data).hexdigest(), None, None
+        digest = hashlib.md5(data).hexdigest()  # noqa: S324
+        width, height = None, None
         try:
             if what == "png":
                 width, height = get_image_size_png(data)
