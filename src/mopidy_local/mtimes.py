@@ -12,7 +12,7 @@ class FindError(exceptions.MopidyException):
         self.errno = errno
 
 
-def find_mtimes(root, follow=False):
+def find_mtimes(root, *, follow=False):
     results, errors = _find(root, relative=False, follow=follow)
 
     # return the mtimes as integer milliseconds
@@ -21,7 +21,7 @@ def find_mtimes(root, follow=False):
     return mtimes, errors
 
 
-def _find(root, thread_count=10, relative=False, follow=False):
+def _find(root, *, thread_count=10, relative=False, follow=False):
     """Threaded find implementation that provides stat results for files.
 
     Tries to protect against sym/hardlink loops by keeping an eye on parent
@@ -58,7 +58,7 @@ def _find(root, thread_count=10, relative=False, follow=False):
     return results, errors
 
 
-def _find_worker(root, follow, done, work, results, errors):
+def _find_worker(root, follow, done, work, results, errors):  # noqa: PLR0913
     """Worker thread for collecting stat() results.
 
     :param Path root: directory to make results relative to
@@ -74,16 +74,10 @@ def _find_worker(root, follow, done, work, results, errors):
         except queue.Empty:
             continue
 
-        if root:
-            path = entry.relative_to(root)
-        else:
-            path = entry
+        path = entry.relative_to(root) if root else entry
 
         try:
-            if follow:
-                st = entry.stat()
-            else:
-                st = entry.lstat()
+            st = entry.stat() if follow else entry.lstat()
 
             if (st.st_dev, st.st_ino) in parents:
                 errors[path] = FindError("Sym/hardlink loop found.")
@@ -91,7 +85,7 @@ def _find_worker(root, follow, done, work, results, errors):
 
             if stat.S_ISDIR(st.st_mode):
                 for e in entry.iterdir():
-                    work.put((e, parents + [(st.st_dev, st.st_ino)]))
+                    work.put((e, [*parents, (st.st_dev, st.st_ino)]))
             elif stat.S_ISREG(st.st_mode):
                 results[path] = st
             elif stat.S_ISLNK(st.st_mode):

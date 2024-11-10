@@ -4,7 +4,6 @@ import logging
 import os
 import urllib
 from pathlib import Path
-from typing import Union
 
 logger = logging.getLogger(__name__)
 
@@ -25,16 +24,14 @@ def local_uri_to_path(local_uri: str, media_dir: Path) -> Path:
     return media_dir / file_path
 
 
-def path_to_file_uri(path: Union[str, bytes, Path]) -> str:
+def path_to_file_uri(path: str | bytes | Path) -> str:
     """Convert absolute path to file URI."""
     ppath = Path(os.fsdecode(path))
     assert ppath.is_absolute()
     return ppath.as_uri()
 
 
-def path_to_local_track_uri(
-    path: Union[str, bytes, Path], media_dir: Path
-) -> str:
+def path_to_local_track_uri(path: str | bytes | Path, media_dir: Path) -> str:
     """Convert path to local track URI."""
     ppath = Path(os.fsdecode(path))
     if ppath.is_absolute():

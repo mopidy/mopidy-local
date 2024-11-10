@@ -1,5 +1,6 @@
 import time
 import unittest
+from unittest import mock
 
 import pykka
 from mopidy import core
@@ -7,7 +8,6 @@ from mopidy.core import PlaybackState
 from mopidy.models import TlTrack, Track
 
 from mopidy_local import actor
-from unittest import mock
 from tests import (
     dummy_audio,
     generate_song,
@@ -15,7 +15,7 @@ from tests import (
     populate_tracklist,
 )
 
-# TODO Test 'playlist repeat', e.g. repeat=1,single=0
+# TODO: Test 'playlist repeat', e.g. repeat=1,single=0
 
 
 class LocalPlaybackProviderTest(unittest.TestCase):
@@ -49,13 +49,16 @@ class LocalPlaybackProviderTest(unittest.TestCase):
         callback = self.audio.get_about_to_finish_callback().get()
         callback()
 
-    def setUp(self):  # noqa: N802
+    def setUp(self):
         self.audio = dummy_audio.create_proxy()
         self.backend = actor.LocalBackend.start(
-            config=self.config, audio=self.audio
+            config=self.config,
+            audio=self.audio,
         ).proxy()
         self.core = core.Core.start(
-            audio=self.audio, backends=[self.backend], config=self.config
+            audio=self.audio,
+            backends=[self.backend],
+            config=self.config,
         ).proxy()
         self.playback = self.core.playback
         self.tracklist = self.core.tracklist
@@ -65,7 +68,7 @@ class LocalPlaybackProviderTest(unittest.TestCase):
             self.tracks[0].length >= 2000
         ), "First song needs to be at least 2000 miliseconds"
 
-    def tearDown(self):  # noqa: N802
+    def tearDown(self):
         pykka.ActorRegistry.stop_all()
 
     def assert_state_is(self, state):
@@ -301,7 +304,7 @@ class LocalPlaybackProviderTest(unittest.TestCase):
             self.assert_current_track_is(track)
             assert self.tracklist.index().get() == i
 
-            self.playback.next()  # noqa: B305
+            self.playback.next()
 
         self.assert_state_is(PlaybackState.STOPPED)
 
@@ -560,9 +563,7 @@ class LocalPlaybackProviderTest(unittest.TestCase):
 
     @populate_tracklist
     @mock.patch("random.shuffle")
-    def test_end_of_track_track_with_random_after_append_playlist(
-        self, shuffle_mock
-    ):
+    def test_end_of_track_track_with_random_after_append_playlist(self, shuffle_mock):
         shuffle_mock.side_effect = lambda tracks: tracks.reverse()
 
         self.tracklist.set_random(True)
@@ -615,7 +616,7 @@ class LocalPlaybackProviderTest(unittest.TestCase):
     def test_previous_track_with_consume(self):
         self.tracklist.set_consume(True)
         for _ in self.tracks:
-            self.playback.next()  # noqa: B305
+            self.playback.next()
             current = self.playback.get_current_tl_track().get()
             self.assert_previous_tl_track_is(current)
 
@@ -623,7 +624,7 @@ class LocalPlaybackProviderTest(unittest.TestCase):
     def test_previous_track_with_random(self):
         self.tracklist.set_random(True)
         for _ in self.tracks:
-            self.playback.next()  # noqa: B305
+            self.playback.next()
             current = self.playback.get_current_tl_track().get()
             self.assert_previous_tl_track_is(current)
 
@@ -806,7 +807,7 @@ class LocalPlaybackProviderTest(unittest.TestCase):
     @unittest.SkipTest
     @populate_tracklist
     def test_seek_beyond_end_of_song(self):
-        # FIXME need to decide return value
+        # TODO: need to decide return value
         self.playback.play().get()
         result = self.playback.seek(self.tracks[0].length * 100)
         assert not result
@@ -1015,7 +1016,7 @@ class LocalPlaybackProviderTest(unittest.TestCase):
         self.tracklist.set_random(True)
         self.playback.play().get()
         for _ in self.tracks[1:]:
-            self.playback.next()  # noqa: B305
+            self.playback.next()
         self.assert_next_tl_track_is_not(None)
 
     @populate_tracklist

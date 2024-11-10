@@ -28,28 +28,28 @@ _BROWSE_QUERIES = {
      WHERE %%s
      GROUP BY coalesce(album.uri, track.uri)
      ORDER BY %%s
-    """
+    """  # noqa: S608
     % (Ref.TRACK, Ref.ALBUM),
     Ref.ALBUM: """
     SELECT '%s' AS type, uri AS uri, name AS name
       FROM album
      WHERE %%s
      ORDER BY %%s
-    """
+    """  # noqa: S608
     % Ref.ALBUM,
     Ref.ARTIST: """
     SELECT '%s' AS type, uri AS uri, name AS name
       FROM artist
      WHERE %%s
      ORDER BY %%s
-    """
+    """  # noqa: S608
     % Ref.ARTIST,
     Ref.TRACK: """
     SELECT '%s' AS type, uri AS uri, name AS name
       FROM track
      WHERE %%s
      ORDER BY %%s
-    """
+    """  # noqa: S608
     % Ref.TRACK,
 }
 
@@ -203,7 +203,7 @@ def tracks(c):
     return list(map(_track, c.execute("SELECT * FROM tracks")))
 
 
-def list_distinct(c, field, query=tuple()):
+def list_distinct(c, field, query=()):
     if field not in _SEARCH_FIELDS:
         raise LookupError("Invalid search field: %s" % field)
     sql = (
@@ -211,7 +211,7 @@ def list_distinct(c, field, query=tuple()):
     SELECT DISTINCT %s AS field
       FROM search
      WHERE field IS NOT NULL
-    """
+    """  # noqa: S608
         % field
     )
     terms = []
@@ -230,7 +230,7 @@ def list_distinct(c, field, query=tuple()):
     return list(map(operator.itemgetter(0), c.execute(sql, params)))
 
 
-def dates(c, format="%Y-%m-%d"):
+def dates(c, format="%Y-%m-%d"):  # noqa: A002
     return list(
         map(
             operator.itemgetter(0),
@@ -243,11 +243,11 @@ def dates(c, format="%Y-%m-%d"):
         """,
                 [format],
             ),
-        )
+        ),
     )
 
 
-def lookup(c, type, uri):
+def lookup(c, type, uri):  # noqa: A002
     return list(map(_track, c.execute(_LOOKUP_QUERIES[type], [uri])))
 
 
@@ -256,7 +256,7 @@ def exists(c, uri):
     return rows.fetchone()[0]
 
 
-def browse(c, type=None, order=("type", "name COLLATE NOCASE"), **kwargs):
+def browse(c, type=None, order=("type", "name COLLATE NOCASE"), **kwargs):  # noqa: A002
     filters, params = _filters(_BROWSE_FILTERS[type], **kwargs)
     sql = _BROWSE_QUERIES[type] % (
         " AND ".join(filters) or "1",
@@ -266,7 +266,7 @@ def browse(c, type=None, order=("type", "name COLLATE NOCASE"), **kwargs):
     return [Ref(**row) for row in c.execute(sql, params)]
 
 
-def search_tracks(c, query, limit, offset, exact, filters=tuple()):
+def search_tracks(c, query, limit, offset, exact, filters=()):  # noqa: PLR0913
     if not query:
         sql, params = ("SELECT * FROM tracks WHERE 1", [])
     elif exact:
@@ -387,7 +387,7 @@ def cleanup(c):
     DELETE FROM album WHERE NOT EXISTS (
         SELECT uri FROM track WHERE track.album = album.uri
     )
-    """
+    """,
     )
     c.execute(
         """
@@ -400,7 +400,7 @@ def cleanup(c):
          UNION
         SELECT uri FROM album WHERE album.artists = artist.uri
     )
-    """
+    """,
     )
     c.execute("ANALYZE")
 
@@ -412,13 +412,15 @@ def clear(c):
     DELETE FROM album;
     DELETE FROM artist;
     VACUUM;
-    """
+    """,
     )
 
 
 def _insert(c, table, params):
-    sql = "INSERT OR REPLACE INTO {} ({}) VALUES ({})".format(
-        table, ", ".join(params.keys()), ", ".join(["?"] * len(params))
+    sql = "INSERT OR REPLACE INTO {} ({}) VALUES ({})".format(  # noqa: S608
+        table,
+        ", ".join(params.keys()),
+        ", ".join(["?"] * len(params)),
     )
     logger.debug("SQLite insert statement: %s %r", sql, params.values())
     return c.execute(sql, list(params.values()))
@@ -428,7 +430,7 @@ def _filters(mapping, role=None, **kwargs):
     filters, params = [], []
     if role and "role" in mapping:
         rolemap = mapping["role"]
-        if isinstance(role, (str, bytes)):
+        if isinstance(role, str | bytes):
             filters.append(rolemap[role])
         else:
             filters.append(" OR ".join(rolemap[r] for r in role))
@@ -491,7 +493,7 @@ def _track(row):
                     name=row.albumartist_name,
                     sortname=row.albumartist_sortname,
                     musicbrainz_id=row.albumartist_musicbrainz_id,
-                )
+                ),
             ]
         else:
             albumartists = None
@@ -511,7 +513,7 @@ def _track(row):
                 name=row.artist_name,
                 sortname=row.artist_sortname,
                 musicbrainz_id=row.artist_musicbrainz_id,
-            )
+            ),
         ]
     if row.composer_uri is not None:
         kwargs["composers"] = [
@@ -520,7 +522,7 @@ def _track(row):
                 name=row.composer_name,
                 sortname=row.composer_sortname,
                 musicbrainz_id=row.composer_musicbrainz_id,
-            )
+            ),
         ]
     if row.performer_uri is not None:
         kwargs["performers"] = [
@@ -529,7 +531,7 @@ def _track(row):
                 name=row.performer_name,
                 sortname=row.performer_sortname,
                 musicbrainz_id=row.performer_musicbrainz_id,
-            )
+            ),
         ]
     return Track(**kwargs)
 

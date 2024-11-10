@@ -31,20 +31,23 @@ class LocalTracklistProviderTest(unittest.TestCase):
     }
     tracks = [Track(uri=generate_song(i), length=4464) for i in range(1, 4)]
 
-    def setUp(self):  # noqa: N802
+    def setUp(self):
         self.audio = dummy_audio.create_proxy()
         self.backend = actor.LocalBackend.start(
-            config=self.config, audio=self.audio
+            config=self.config,
+            audio=self.audio,
         ).proxy()
         self.core = core.Core.start(
-            audio=self.audio, backends=[self.backend], config=self.config
+            audio=self.audio,
+            backends=[self.backend],
+            config=self.config,
         ).proxy()
         self.controller = self.core.tracklist
         self.playback = self.core.playback
 
         assert len(self.tracks) == 3, "Need three tracks to run tests."
 
-    def tearDown(self):  # noqa: N802
+    def tearDown(self):
         pykka.ActorRegistry.stop_all()
 
     def assert_state_is(self, state):
@@ -54,11 +57,11 @@ class LocalTracklistProviderTest(unittest.TestCase):
         assert self.playback.get_current_track().get() == track
 
     def test_length(self):
-        assert 0 == len(self.controller.get_tl_tracks().get())
-        assert 0 == self.controller.get_length().get()
+        assert len(self.controller.get_tl_tracks().get()) == 0
+        assert self.controller.get_length().get() == 0
         self.controller.add(self.tracks)
-        assert 3 == len(self.controller.get_tl_tracks().get())
-        assert 3 == self.controller.get_length().get()
+        assert len(self.controller.get_tl_tracks().get()) == 3
+        assert self.controller.get_length().get() == 3
 
     def test_add(self):
         for track in self.tracks:
@@ -105,7 +108,7 @@ class LocalTracklistProviderTest(unittest.TestCase):
 
     @populate_tracklist
     def test_filter_by_uri_returns_nothing_for_invalid_uri(self):
-        assert [] == self.controller.filter({"uri": ["foobar"]}).get()
+        assert self.controller.filter({"uri": ["foobar"]}).get() == []
 
     def test_filter_by_uri_returns_single_match(self):
         t = Track(uri="a")
@@ -122,10 +125,8 @@ class LocalTracklistProviderTest(unittest.TestCase):
         assert track == tl_tracks[1].track
 
     def test_filter_by_uri_returns_nothing_if_no_match(self):
-        self.controller.playlist = Playlist(
-            tracks=[Track(uri="z"), Track(uri="y")]
-        )
-        assert [] == self.controller.filter({"uri": ["a"]}).get()
+        self.controller.playlist = Playlist(tracks=[Track(uri="z"), Track(uri="y")])
+        assert self.controller.filter({"uri": ["a"]}).get() == []
 
     def test_filter_by_multiple_criteria_returns_elements_matching_all(self):
         t1 = Track(uri="a", name="x")
@@ -336,14 +337,14 @@ class LocalTracklistProviderTest(unittest.TestCase):
     @populate_tracklist
     def test_slice_returns_a_subset_of_tracks(self):
         track_slice = self.controller.slice(1, 3).get()
-        assert 2 == len(track_slice)
+        assert len(track_slice) == 2
         assert self.tracks[1] == track_slice[0].track
         assert self.tracks[2] == track_slice[1].track
 
     @populate_tracklist
     def test_slice_returns_empty_list_if_indexes_outside_tracks_list(self):
-        assert 0 == len(self.controller.slice(7, 8).get())
-        assert 0 == len(self.controller.slice((-1), 1).get())
+        assert len(self.controller.slice(7, 8).get()) == 0
+        assert len(self.controller.slice((-1), 1).get()) == 0
 
     def test_version_does_not_change_when_adding_nothing(self):
         version = self.controller.get_version().get()

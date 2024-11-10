@@ -1,5 +1,5 @@
+import contextlib
 import pathlib
-import os
 import unittest
 from unittest import mock
 
@@ -30,27 +30,26 @@ class LocalLibraryProviderTest(unittest.TestCase):
     def setUp(self):
         self.audio = dummy_audio.create_proxy()
         self.backend = actor.LocalBackend.start(
-            config=self.config, audio=self.audio
+            config=self.config,
+            audio=self.audio,
         ).proxy()
         self.core = core.Core.start(
-            audio=self.audio, backends=[self.backend], config=self.config
+            audio=self.audio,
+            backends=[self.backend],
+            config=self.config,
         ).proxy()
         self.library = self.backend.library
         self.storage = storage.LocalStorageProvider(self.config)
         self.storage.load()
 
-    def tearDown(self):  # noqa: N802
+    def tearDown(self):
         pykka.ActorRegistry.stop_all()
-        try:
-            os.remove(path_to_data_dir("local/library.db"))
-        except OSError:
-            pass
+        with contextlib.suppress(OSError):
+            path_to_data_dir("local/library.db").unlink()
 
     def test_add_noname_ascii(self):
         name = "Test.mp3"
-        uri = translator.path_to_local_track_uri(
-            name, pathlib.Path("/media/dir")
-        )
+        uri = translator.path_to_local_track_uri(name, pathlib.Path("/media/dir"))
         track = Track(name=name, uri=uri)
         self.storage.begin()
         self.storage.add(track)
@@ -60,7 +59,8 @@ class LocalLibraryProviderTest(unittest.TestCase):
     def test_add_noname_utf8(self):
         name = "Mi\xf0vikudags.mp3"
         uri = translator.path_to_local_track_uri(
-            name.encode(), pathlib.Path("/media/dir")
+            name.encode(),
+            pathlib.Path("/media/dir"),
         )
         track = Track(name=name, uri=uri)
         self.storage.begin()

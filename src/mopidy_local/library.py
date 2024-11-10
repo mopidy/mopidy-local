@@ -28,9 +28,7 @@ def genre_ref(genre):
 class LocalLibraryProvider(backend.LibraryProvider):
     ROOT_DIRECTORY_URI = "local:directory"
 
-    root_directory = models.Ref.directory(
-        uri=ROOT_DIRECTORY_URI, name="Local media"
-    )
+    root_directory = models.Ref.directory(uri=ROOT_DIRECTORY_URI, name="Local media")
 
     def __init__(self, backend, config):
         super().__init__(backend)
@@ -54,12 +52,11 @@ class LocalLibraryProvider(backend.LibraryProvider):
         try:
             if uri.startswith("local:album"):
                 return list(schema.lookup(self._connect(), Ref.ALBUM, uri))
-            elif uri.startswith("local:artist"):
+            if uri.startswith("local:artist"):
                 return list(schema.lookup(self._connect(), Ref.ARTIST, uri))
-            elif uri.startswith("local:track"):
+            if uri.startswith("local:track"):
                 return list(schema.lookup(self._connect(), Ref.TRACK, uri))
-            else:
-                raise ValueError("Invalid lookup URI")
+            raise ValueError("Invalid lookup URI")  # noqa: TRY301
         except Exception as e:
             logger.error("Lookup error for %s: %s", uri, e)
             return []
@@ -68,19 +65,26 @@ class LocalLibraryProvider(backend.LibraryProvider):
         try:
             if uri == self.ROOT_DIRECTORY_URI:
                 return self._directories
-            elif uri.startswith("local:directory"):
+            if uri.startswith("local:directory"):
                 return self._browse_directory(uri)
-            elif uri.startswith("local:artist"):
+            if uri.startswith("local:artist"):
                 return self._browse_artist(uri)
-            elif uri.startswith("local:album"):
+            if uri.startswith("local:album"):
                 return self._browse_album(uri)
-            else:
-                raise ValueError("Invalid browse URI")
+            raise ValueError("Invalid browse URI")  # noqa: TRY301
         except Exception as e:
             logger.error("Error browsing %s: %s", uri, e)
             return []
 
-    def search(self, query=None, limit=100, offset=0, uris=None, exact=False):
+    def search(
+        self,
+        query=None,
+        uris=None,
+        exact=False,  # noqa: FBT002
+        *,
+        limit=100,
+        offset=0,
+    ):
         limit = self._config["max_search_results"]
         q = []
         for field, values in query.items() if query else []:
@@ -135,10 +139,10 @@ class LocalLibraryProvider(backend.LibraryProvider):
                             "local",
                             None,
                             "directory",
-                            dict(type=Ref.TRACK, album=ref.uri, artist=uri),
+                            dict(type=Ref.TRACK, album=ref.uri, artist=uri),  # noqa: C408
                         ),
                         name=ref.name,
-                    )
+                    ),
                 )
             elif ref.type == Ref.TRACK:
                 tracks.append(ref)
@@ -149,32 +153,26 @@ class LocalLibraryProvider(backend.LibraryProvider):
 
     def _browse_directory(self, uri, order=("type", "name COLLATE NOCASE")):
         query = dict(uritools.urisplit(uri).getquerylist())
-        type = query.pop("type", None)
+        type_ = query.pop("type", None)
         role = query.pop("role", None)
 
         # TODO: handle these in schema (generically)?
-        if type == "date":
-            format = query.get("format", "%Y-%m-%d")
-            return list(
-                map(date_ref, schema.dates(self._connect(), format=format))
-            )
-        if type == "genre":
-            return list(
-                map(genre_ref, schema.list_distinct(self._connect(), "genre"))
-            )
+        if type_ == "date":
+            format_ = query.get("format", "%Y-%m-%d")
+            return list(map(date_ref, schema.dates(self._connect(), format=format_)))
+        if type_ == "genre":
+            return list(map(genre_ref, schema.list_distinct(self._connect(), "genre")))
 
         # Fix #38: keep sort order of album tracks; this also applies
         # to composers and performers
-        if type == Ref.TRACK and "album" in query:
+        if type_ == Ref.TRACK and "album" in query:
             order = ("disc_no", "track_no", "name")
-        if type == Ref.ARTIST and self._config["use_artist_sortname"]:
+        if type_ == Ref.ARTIST and self._config["use_artist_sortname"]:
             order = ("coalesce(sortname, name) COLLATE NOCASE",)
-        roles = role or ("artist", "albumartist")  # FIXME: re-think 'roles'...
+        roles = role or ("artist", "albumartist")  # TODO: re-think 'roles'...
 
         refs = []
-        for ref in schema.browse(
-            self._connect(), type, order, role=roles, **query
-        ):  # noqa
+        for ref in schema.browse(self._connect(), type_, order, role=roles, **query):
             if ref.type == Ref.TRACK or (not query and not role):
                 refs.append(ref)
             elif ref.type == Ref.ALBUM:
@@ -184,10 +182,10 @@ class LocalLibraryProvider(backend.LibraryProvider):
                             "local",
                             None,
                             "directory",
-                            dict(query, type=Ref.TRACK, album=ref.uri),  # noqa
+                            dict(query, type=Ref.TRACK, album=ref.uri),
                         ),
                         name=ref.name,
-                    )
+                    ),
                 )
             elif ref.type == Ref.ARTIST:
                 refs.append(
@@ -199,7 +197,7 @@ class LocalLibraryProvider(backend.LibraryProvider):
                             dict(query, **{role: ref.uri}),
                         ),
                         name=ref.name,
-                    )
+                    ),
                 )
             else:
                 logger.warning("Unexpected SQLite browse result: %r", ref)
@@ -208,9 +206,8 @@ class LocalLibraryProvider(backend.LibraryProvider):
     def _filters(self, uri):
         if uri.startswith("local:directory"):
             return [dict(uritools.urisplit(uri).getquerylist())]
-        elif uri.startswith("local:artist"):
+        if uri.startswith("local:artist"):
             return [{"artist": uri}, {"albumartist": uri}]
-        elif uri.startswith("local:album"):
+        if uri.startswith("local:album"):
             return [{"album": uri}]
-        else:
-            return []
+        return []
