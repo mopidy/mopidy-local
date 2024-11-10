@@ -28,9 +28,7 @@ def genre_ref(genre):
 class LocalLibraryProvider(backend.LibraryProvider):
     ROOT_DIRECTORY_URI = "local:directory"
 
-    root_directory = models.Ref.directory(
-        uri=ROOT_DIRECTORY_URI, name="Local media"
-    )
+    root_directory = models.Ref.directory(uri=ROOT_DIRECTORY_URI, name="Local media")
 
     def __init__(self, backend, config):
         super().__init__(backend)
@@ -155,13 +153,9 @@ class LocalLibraryProvider(backend.LibraryProvider):
         # TODO: handle these in schema (generically)?
         if type == "date":
             format = query.get("format", "%Y-%m-%d")
-            return list(
-                map(date_ref, schema.dates(self._connect(), format=format))
-            )
+            return list(map(date_ref, schema.dates(self._connect(), format=format)))
         if type == "genre":
-            return list(
-                map(genre_ref, schema.list_distinct(self._connect(), "genre"))
-            )
+            return list(map(genre_ref, schema.list_distinct(self._connect(), "genre")))
 
         # Fix #38: keep sort order of album tracks; this also applies
         # to composers and performers
@@ -172,9 +166,7 @@ class LocalLibraryProvider(backend.LibraryProvider):
         roles = role or ("artist", "albumartist")  # FIXME: re-think 'roles'...
 
         refs = []
-        for ref in schema.browse(
-            self._connect(), type, order, role=roles, **query
-        ):  # noqa
+        for ref in schema.browse(self._connect(), type, order, role=roles, **query):  # noqa
             if ref.type == Ref.TRACK or (not query and not role):
                 refs.append(ref)
             elif ref.type == Ref.ALBUM:

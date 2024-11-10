@@ -4,7 +4,7 @@ from mopidy_local import storage
 
 
 def test_get_image_type_from_header_png():
-    data_bytes = b"\x89PNG\r\n\x1A\nffe000104a464"
+    data_bytes = b"\x89PNG\r\n\x1a\nffe000104a464"
     assert storage.get_image_type_from_header(data_bytes) == "png"
 
 
@@ -40,6 +40,6 @@ def test_get_image_type_from_header_unknown_header():
 
 
 def test_get_image_type_from_header_too_short_header():
-    data_bytes = b"\xFF"
+    data_bytes = b"\xff"
     with pytest.raises(ValueError):
         storage.get_image_type_from_header(data_bytes)

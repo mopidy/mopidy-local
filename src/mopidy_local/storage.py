@@ -65,13 +65,13 @@ def get_image_type_from_header(header: bytes) -> str:
     if len(header) < MIN_BYTES_FOR_IMAGE_TYPE:
         raise ValueError("Unknown image type")
 
-    if header.startswith(b"\x89PNG\r\n\x1A\n"):
+    if header.startswith(b"\x89PNG\r\n\x1a\n"):
         return "png"
 
     if header.startswith((b"GIF87a", b"GIF89a")):
         return "gif"
 
-    if header.startswith(b"\xFF\xD8"):
+    if header.startswith(b"\xff\xd8"):
         return "jpeg"
 
     raise ValueError("Unknown image type")
@@ -169,9 +169,7 @@ class LocalStorageProvider:
             raise ValueError("Empty album name")
         if not model.uri:
             model = model.replace(uri=model_uri("album", model))
-        return model.replace(
-            artists=list(map(self._validate_artist, model.artists))
-        )
+        return model.replace(artists=list(map(self._validate_artist, model.artists)))
 
     def _validate_track(self, model):
         if not model.uri:
@@ -252,8 +250,6 @@ class LocalStorageProvider:
             name = f"{digest}.{what}"
         image_path = self._image_dir / name
         if not image_path.is_file():
-            logger.info(
-                f"Creating file {image_path.as_uri()} from {data_source}"
-            )
+            logger.info(f"Creating file {image_path.as_uri()} from {data_source}")
             image_path.write_bytes(data)
         return uritools.urijoin(self._base_uri, name)

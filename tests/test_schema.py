@@ -10,15 +10,11 @@ DBPATH = ":memory:"
 
 class SchemaTest(unittest.TestCase):
     artists = [
-        Artist(
-            uri="local:artist:0", name="artist #0", musicbrainz_id="1234a-987c"
-        ),
+        Artist(uri="local:artist:0", name="artist #0", musicbrainz_id="1234a-987c"),
         Artist(uri="local:artist:1", name="artist #1"),
     ]
     albums = [
-        Album(
-            uri="local:album:0", name="album #0", musicbrainz_id="1234a-3421d"
-        ),
+        Album(uri="local:album:0", name="album #0", musicbrainz_id="1234a-3421d"),
         Album(uri="local:album:1", name="album #1", artists=[artists[0]]),
         Album(uri="local:album:2", name="album #2", artists=[artists[1]]),
     ]
@@ -183,9 +179,7 @@ class SchemaTest(unittest.TestCase):
         ]:
             for exact in (True, False):
                 with self.connection as c:
-                    tracks = schema.search_tracks(
-                        c, query, 10, 0, exact, filters
-                    )
+                    tracks = schema.search_tracks(c, query, 10, 0, exact, filters)
                 self.assertCountEqual(results, map(lambda t: t.uri, tracks))
 
     def test_fulltext_search(self):

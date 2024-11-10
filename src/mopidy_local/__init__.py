@@ -22,9 +22,7 @@ class Extension(ext.Extension):
         schema["data_dir"] = config.Deprecated()
         schema["playlists_dir"] = config.Deprecated()
         schema["tag_cache_file"] = config.Deprecated()
-        schema["scan_timeout"] = config.Integer(
-            minimum=1000, maximum=1000 * 60 * 60
-        )
+        schema["scan_timeout"] = config.Integer(minimum=1000, maximum=1000 * 60 * 60)
         schema["scan_flush_threshold"] = config.Integer(minimum=0)
         schema["scan_follow_symlinks"] = config.Boolean()
         schema["included_file_extensions"] = config.List(optional=True)
@@ -39,9 +37,7 @@ class Extension(ext.Extension):
         from .actor import LocalBackend
 
         registry.add("backend", LocalBackend)
-        registry.add(
-            "http:app", {"name": self.ext_name, "factory": self.webapp}
-        )
+        registry.add("http:app", {"name": self.ext_name, "factory": self.webapp})
 
     def get_command(self):
         from .commands import LocalCommand

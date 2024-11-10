@@ -48,9 +48,7 @@ class LocalLibraryProviderTest(unittest.TestCase):
 
     def test_add_noname_ascii(self):
         name = "Test.mp3"
-        uri = translator.path_to_local_track_uri(
-            name, pathlib.Path("/media/dir")
-        )
+        uri = translator.path_to_local_track_uri(name, pathlib.Path("/media/dir"))
         track = Track(name=name, uri=uri)
         self.storage.begin()
         self.storage.add(track)

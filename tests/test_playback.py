@@ -560,9 +560,7 @@ class LocalPlaybackProviderTest(unittest.TestCase):
 
     @populate_tracklist
     @mock.patch("random.shuffle")
-    def test_end_of_track_track_with_random_after_append_playlist(
-        self, shuffle_mock
-    ):
+    def test_end_of_track_track_with_random_after_append_playlist(self, shuffle_mock):
         shuffle_mock.side_effect = lambda tracks: tracks.reverse()
 
         self.tracklist.set_random(True)

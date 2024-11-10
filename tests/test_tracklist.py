@@ -122,9 +122,7 @@ class LocalTracklistProviderTest(unittest.TestCase):
         assert track == tl_tracks[1].track
 
     def test_filter_by_uri_returns_nothing_if_no_match(self):
-        self.controller.playlist = Playlist(
-            tracks=[Track(uri="z"), Track(uri="y")]
-        )
+        self.controller.playlist = Playlist(tracks=[Track(uri="z"), Track(uri="y")])
         assert [] == self.controller.filter({"uri": ["a"]}).get()
 
     def test_filter_by_multiple_criteria_returns_elements_matching_all(self):
