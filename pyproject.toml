@@ -32,7 +32,7 @@ dependencies = [
 [project.optional-dependencies]
 lint = ["ruff >= 0.5"]
 test = ["pytest", "pytest-cov"]
-dev = ["mopidy-local[lint,test]", "tox"]
+dev = ["mopidy-local[lint,test]", "tox >= 4.21"]
 
 [project.urls]
 Source = "https://github.com/mopidy/mopidy-local"
@@ -91,3 +91,28 @@ ignore = [
 
 
 [tool.setuptools_scm]
+
+
+[tool.tox]
+requires = ["tox >= 4.21"]
+env_list = ["3.11", "3.12", "3.13", "ruff-lint", "ruff-format"]
+
+[tool.tox.env_run_base]
+deps = [".[test]"]
+commands = [
+	[
+		"pytest",
+		"--basetemp={envtmpdir}",
+		"--cov=mopidy_local",
+		"--cov-report=term-missing",
+		"{posargs}",
+	],
+]
+
+[tool.tox.env.ruff-lint]
+deps = [".[lint]"]
+commands = [["ruff", "check", "."]]
+
+[tool.tox.env.ruff-format]
+deps = [".[lint]"]
+commands = [["ruff", "format", "--check", "."]]
