@@ -1,5 +1,53 @@
 [build-system]
-requires = ["setuptools >= 30.3.0", "wheel"]
+requires = ["setuptools >= 66", "setuptools-scm >= 7.1"]
+build-backend = "setuptools.build_meta"
+
+
+[project]
+name = "mopidy-local"
+description = "Mopidy extension for playing music from your local music archive"
+readme = "README.rst"
+requires-python = ">= 3.9"
+license = { text = "Apache-2.0" }
+authors = [{ name = "Stein Magnus Jodal", email = "stein.magnus@jodal.no" }]
+classifiers = [
+	"Environment :: No Input/Output (Daemon)",
+	"Intended Audience :: End Users/Desktop",
+	"License :: OSI Approved :: Apache Software License",
+	"Operating System :: OS Independent",
+	"Programming Language :: Python :: 3",
+	"Programming Language :: Python :: 3.9",
+	"Programming Language :: Python :: 3.10",
+	"Programming Language :: Python :: 3.11",
+	"Topic :: Multimedia :: Sound/Audio :: Players",
+]
+dynamic = ["version"]
+dependencies = [
+	"mopidy >= 3.0",
+	"pykka >= 2.0.1",
+	"setuptools >= 66",
+	"uritools >= 1.0",
+]
+
+[project.optional-dependencies]
+lint = [
+	"black",
+	"check-manifest",
+	"flake8",
+	"flake8-black",
+	"flake8-bugbear",
+	"flake8-import-order",
+	"isort",
+]
+test = ["pytest", "pytest-cov"]
+dev = ["mopidy-local[lint,test]", "tox"]
+
+[project.urls]
+Source = "https://github.com/mopidy/mopidy-local"
+Issues = "https://github.com/mopidy/mopidy-local/issues"
+
+[project.entry-points."mopidy.ext"]
+local = "mopidy_local:Extension"
 
 
 [tool.black]
@@ -15,3 +63,6 @@ use_parentheses = true
 line_length = 88
 known_tests = "tests"
 sections = "FUTURE,STDLIB,THIRDPARTY,FIRSTPARTY,TESTS,LOCALFOLDER"
+
+
+[tool.setuptools_scm]
