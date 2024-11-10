@@ -31,7 +31,7 @@ dependencies = [
 
 [project.optional-dependencies]
 lint = ["ruff >= 0.5"]
-test = ["pytest", "pytest-cov"]
+test = ["pytest >= 7.2", "pytest-cov >= 4.0"]
 dev = ["mopidy-local[lint,test]", "tox >= 4.21"]
 
 [project.urls]
