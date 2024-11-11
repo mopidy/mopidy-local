@@ -111,8 +111,8 @@ commands = [
 
 [tool.tox.env.ruff-lint]
 deps = [".[lint]"]
-commands = [["ruff", "check", "."]]
+commands = [["ruff", "check", "{posargs:.}"]]
 
 [tool.tox.env.ruff-format]
 deps = [".[lint]"]
-commands = [["ruff", "format", "--check", "."]]
+commands = [["ruff", "format", "--check", "{posargs:.}"]]
