@@ -30,7 +30,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-lint = ["ruff >= 0.5"]
+lint = ["ruff >= 0.8.2"]
 test = ["pytest >= 7.2", "pytest-cov >= 4.0"]
 dev = ["mopidy-local[lint,test]", "tox >= 4.21"]
 
@@ -49,8 +49,6 @@ target-version = "py311"
 select = ["ALL"]
 ignore = [
     "ANN",    # flake8-annotations  # TODO
-    "ANN101", # missing-type-self
-    "ANN102", # missing-type-cls
     "ANN401", # any-type
     "BLE001", # blind-except  # TODO
     "D",      # pydocstyle
