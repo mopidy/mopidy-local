@@ -11,22 +11,22 @@ requires-python = ">= 3.11"
 license = { text = "Apache-2.0" }
 authors = [{ name = "Stein Magnus Jodal", email = "stein.magnus@jodal.no" }]
 classifiers = [
-	"Environment :: No Input/Output (Daemon)",
-	"Intended Audience :: End Users/Desktop",
-	"License :: OSI Approved :: Apache Software License",
-	"Operating System :: OS Independent",
-	"Programming Language :: Python :: 3",
-	"Programming Language :: Python :: 3.11",
-	"Programming Language :: Python :: 3.12",
-	"Programming Language :: Python :: 3.13",
-	"Topic :: Multimedia :: Sound/Audio :: Players",
+    "Environment :: No Input/Output (Daemon)",
+    "Intended Audience :: End Users/Desktop",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Multimedia :: Sound/Audio :: Players",
 ]
 dynamic = ["version"]
 dependencies = [
-	"mopidy >= 4.0.0a1",
-	"pykka >= 2.0.1",
-	"setuptools >= 66",
-	"uritools >= 1.0",
+    "mopidy >= 4.0.0a1",
+    "pykka >= 2.0.1",
+    "setuptools >= 66",
+    "uritools >= 1.0",
 ]
 
 [project.optional-dependencies]
@@ -48,45 +48,45 @@ target-version = "py311"
 [tool.ruff.lint]
 select = ["ALL"]
 ignore = [
-	"ANN",    # flake8-annotations  # TODO
-	"ANN101", # missing-type-self
-	"ANN102", # missing-type-cls
-	"ANN401", # any-type
-	"BLE001", # blind-except  # TODO
-	"D",      # pydocstyle
-	"EM101",  # raw-string-in-exception  # TODO
-	"FIX001", # line-contains-fixme
-	"FIX002", # line-contains-todo
-	"G002",   # logging-percent-format
-	"G004",   # logging-f-string
-	"ISC001", # single-line-implicit-string-concatenation
-	"PTH123", # builtin-open  # TODO
-	"RUF012", # mutable-class-default  # TODO
-	"S101",   # assert  # TODO
-	"TD002",  # missing-todo-author
-	"TD003",  # missing-todo-link
-	"TRY003", # raise-vanilla-args
-	"TRY400", # error-instead-of-exception
-	"UP031",  # printf-string-formatting  # TODO
-	#
-	# These rules interfere with `ruff format`
-	"COM812", # missing-trailing-comma
-	"ISC001", # single-line-implicit-string-concatenation
+    "ANN",    # flake8-annotations  # TODO
+    "ANN101", # missing-type-self
+    "ANN102", # missing-type-cls
+    "ANN401", # any-type
+    "BLE001", # blind-except  # TODO
+    "D",      # pydocstyle
+    "EM101",  # raw-string-in-exception  # TODO
+    "FIX001", # line-contains-fixme
+    "FIX002", # line-contains-todo
+    "G002",   # logging-percent-format
+    "G004",   # logging-f-string
+    "ISC001", # single-line-implicit-string-concatenation
+    "PTH123", # builtin-open  # TODO
+    "RUF012", # mutable-class-default  # TODO
+    "S101",   # assert  # TODO
+    "TD002",  # missing-todo-author
+    "TD003",  # missing-todo-link
+    "TRY003", # raise-vanilla-args
+    "TRY400", # error-instead-of-exception
+    "UP031",  # printf-string-formatting  # TODO
+    #
+    # These rules interfere with `ruff format`
+    "COM812", # missing-trailing-comma
+    "ISC001", # single-line-implicit-string-concatenation
 ]
 
 [tool.ruff.lint.per-file-ignores]
 "tests/*" = [
-	"ANN",     # flake8-annotations
-	"ARG",     # flake8-unused-arguments
-	"D",       # pydocstyle
-	"FBT",     # flake8-boolean-trap
-	"PLR0913", # too-many-arguments
-	"PLR2004", # magic-value-comparison
-	"PT011",   # pytest-raises-too-broad  # TODO
-	"PT027",   # pytest-unittest-raises-assertion
-	"S101",    # assert
-	"SLF001",  # private-member-access
-	"TRY002",  # raise-vanilla-class
+    "ANN",     # flake8-annotations
+    "ARG",     # flake8-unused-arguments
+    "D",       # pydocstyle
+    "FBT",     # flake8-boolean-trap
+    "PLR0913", # too-many-arguments
+    "PLR2004", # magic-value-comparison
+    "PT011",   # pytest-raises-too-broad  # TODO
+    "PT027",   # pytest-unittest-raises-assertion
+    "S101",    # assert
+    "SLF001",  # private-member-access
+    "TRY002",  # raise-vanilla-class
 ]
 
 
@@ -100,13 +100,13 @@ env_list = ["3.11", "3.12", "3.13", "ruff-lint", "ruff-format"]
 [tool.tox.env_run_base]
 deps = [".[test]"]
 commands = [
-	[
-		"pytest",
-		"--basetemp={envtmpdir}",
-		"--cov=mopidy_local",
-		"--cov-report=term-missing",
-		"{posargs}",
-	],
+    [
+        "pytest",
+        "--basetemp={envtmpdir}",
+        "--cov=mopidy_local",
+        "--cov-report=term-missing",
+        "{posargs}",
+    ],
 ]
 
 [tool.tox.env.ruff-lint]
