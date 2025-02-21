@@ -506,7 +506,7 @@ def _track(row):
         kwargs["album"] = Album(
             uri=row.album_uri,
             name=row.album_name,
-            artists=albumartists,
+            artists=frozenset(albumartists),
             num_tracks=row.album_num_tracks,
             num_discs=row.album_num_discs,
             date=row.album_date,

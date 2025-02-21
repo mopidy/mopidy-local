@@ -2,16 +2,18 @@ from __future__ import annotations
 
 import logging
 import os
-import urllib
+import urllib.parse
 from pathlib import Path
+
+from mopidy.types import Uri
 
 logger = logging.getLogger(__name__)
 
 
-def local_uri_to_file_uri(local_uri: str, media_dir: Path) -> str:
+def local_uri_to_file_uri(local_uri: str, media_dir: Path) -> Uri:
     """Convert local track or directory URI to file URI."""
     path = local_uri_to_path(local_uri, media_dir)
-    return path.as_uri()
+    return Uri(path.as_uri())
 
 
 def local_uri_to_path(local_uri: str, media_dir: Path) -> Path:

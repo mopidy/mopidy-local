@@ -5,6 +5,7 @@ import sqlite3
 import uritools
 from mopidy import backend, models
 from mopidy.models import Ref, SearchResult
+from mopidy.types import Uri
 
 from . import Extension, schema
 
@@ -26,7 +27,7 @@ def genre_ref(genre):
 
 
 class LocalLibraryProvider(backend.LibraryProvider):
-    ROOT_DIRECTORY_URI = "local:directory"
+    ROOT_DIRECTORY_URI = Uri("local:directory")
 
     root_directory = models.Ref.directory(uri=ROOT_DIRECTORY_URI, name="Local media")
 
@@ -93,7 +94,7 @@ class LocalLibraryProvider(backend.LibraryProvider):
         with self._connect() as c:
             tracks = schema.search_tracks(c, q, limit, offset, exact, filters)
         uri = uritools.uricompose("local", path="search", query=q)
-        return SearchResult(uri=uri, tracks=tracks)
+        return SearchResult(uri=uri, tracks=tuple(tracks))
 
     def get_images(self, uris):
         images = {}

@@ -228,8 +228,8 @@ class ScanCommand(commands.Command):
         progress = _ScanProgress(batch_size=flush_threshold, total=len(files))
 
         for absolute_path in files:
+            file_uri = absolute_path.as_uri()
             try:
-                file_uri = absolute_path.as_uri()
                 result = scanner.scan(file_uri)
 
                 if not result.playable:
