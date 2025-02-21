@@ -2,9 +2,9 @@ import sqlite3
 import unittest
 from uuid import UUID
 
-from mopidy_local import schema
-
 from mopidy.models import Album, Artist, Ref, Track
+
+from mopidy_local import schema
 
 DBPATH = ":memory:"
 
@@ -43,7 +43,7 @@ class SchemaTest(unittest.TestCase):
         Track(
             uri="local:track:2",
             name="track #2",
-            date="2020-10",
+            date="2020-09-01",
             album=albums[0],
         ),
         Track(
@@ -125,7 +125,7 @@ class SchemaTest(unittest.TestCase):
     def test_dates(self):
         with self.connection as c:
             results = schema.dates(c)
-            assert results == ["2014-01-01", "2015-03-15", "2020-10-01"]
+            assert results == ["2014-01-01", "2015-03-15", "2020-09-01", "2020-10-01"]
 
             results = schema.dates(c, format="%Y")
             assert results == ["2014", "2015", "2020"]
