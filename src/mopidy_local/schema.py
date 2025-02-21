@@ -502,7 +502,7 @@ def _track(row):
                 ),
             ]
         else:
-            albumartists = None
+            albumartists = []
         kwargs["album"] = Album(
             uri=row.album_uri,
             name=row.album_name,
