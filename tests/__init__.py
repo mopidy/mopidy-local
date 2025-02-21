@@ -2,6 +2,7 @@ import functools
 import pathlib
 
 from mopidy.internal import deprecation
+from mopidy.types import Uri
 
 
 def path_to_data_dir(name) -> pathlib.Path:
@@ -9,8 +10,8 @@ def path_to_data_dir(name) -> pathlib.Path:
     return path.resolve()
 
 
-def generate_song(i):
-    return "local:track:song%s.wav" % i
+def generate_song(i) -> Uri:
+    return Uri("local:track:song%s.wav" % i)
 
 
 def populate_tracklist(func):

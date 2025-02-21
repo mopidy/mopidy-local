@@ -1,11 +1,13 @@
 import time
 import unittest
+from typing import cast
 from unittest import mock
 
 import pykka
-from mopidy import core
+from mopidy import backend, core
 from mopidy.core import PlaybackState
 from mopidy.models import TlTrack, Track
+from mopidy.types import DurationMs
 
 from mopidy_local import actor
 from tests import (
@@ -36,10 +38,13 @@ class LocalPlaybackProviderTest(unittest.TestCase):
     # We need four tracks so that our shuffled track tests behave nicely with
     # reversed as a fake shuffle. Ensuring that shuffled order is [4,3,2,1] and
     # normal order [1,2,3,4] which means next_track != next_track_with_random
-    tracks = [Track(uri=generate_song(i), length=4464) for i in (1, 2, 3, 4)]
+    tracks = [
+        Track(uri=generate_song(i), length=DurationMs(4464)) for i in (1, 2, 3, 4)
+    ]
+    tl_tracks: pykka.Future[list[TlTrack]]
 
     def add_track(self, uri):
-        track = Track(uri=uri, length=4464)
+        track = Track(uri=uri, length=DurationMs(4464))
         self.tracklist.add([track])
 
     def trigger_about_to_finish(self):
@@ -51,22 +56,29 @@ class LocalPlaybackProviderTest(unittest.TestCase):
 
     def setUp(self):
         self.audio = dummy_audio.create_proxy()
-        self.backend = actor.LocalBackend.start(
-            config=self.config,
-            audio=self.audio,
-        ).proxy()
-        self.core = core.Core.start(
-            audio=self.audio,
-            backends=[self.backend],
-            config=self.config,
-        ).proxy()
+        self.backend = cast(
+            backend.BackendProxy,
+            actor.LocalBackend.start(
+                config=self.config,
+                audio=self.audio,
+            ).proxy(),
+        )
+        self.core = cast(
+            core.CoreProxy,
+            core.Core.start(
+                audio=self.audio,
+                backends=[self.backend],
+                config=self.config,
+            ).proxy(),
+        )
         self.playback = self.core.playback
         self.tracklist = self.core.tracklist
 
         assert len(self.tracks) >= 3, "Need at least three tracks to run tests."
-        assert (
-            self.tracks[0].length >= 2000
-        ), "First song needs to be at least 2000 miliseconds"
+        assert self.tracks[0].length
+        assert self.tracks[0].length >= 2000, (
+            "First song needs to be at least 2000 miliseconds"
+        )
 
     def tearDown(self):
         pykka.ActorRegistry.stop_all()
@@ -154,12 +166,12 @@ class LocalPlaybackProviderTest(unittest.TestCase):
     @populate_tracklist
     def test_play_track_state(self):
         self.assert_state_is(PlaybackState.STOPPED)
-        self.playback.play(self.tl_tracks.get()[-1]).get()
+        self.playback.play(tlid=self.tl_tracks.get()[-1].tlid).get()
         self.assert_state_is(PlaybackState.PLAYING)
 
     @populate_tracklist
     def test_play_track_return_value(self):
-        assert self.playback.play(self.tl_tracks.get()[(-1)]).get() is None
+        assert self.playback.play(tlid=self.tl_tracks.get()[-1].tlid).get() is None
 
     @populate_tracklist
     def test_play_when_playing(self):
@@ -195,7 +207,7 @@ class LocalPlaybackProviderTest(unittest.TestCase):
 
     @populate_tracklist
     def test_play_track_sets_current_track(self):
-        self.playback.play(self.tl_tracks.get()[-1]).get()
+        self.playback.play(tlid=self.tl_tracks.get()[-1].tlid).get()
         self.assert_current_track_is(self.tracks[-1])
 
     @populate_tracklist
@@ -210,13 +222,13 @@ class LocalPlaybackProviderTest(unittest.TestCase):
 
     @populate_tracklist
     def test_current_track_after_completed_playlist(self):
-        self.playback.play(self.tl_tracks.get()[-1]).get()
+        self.playback.play(tlid=self.tl_tracks.get()[-1].tlid).get()
         self.trigger_about_to_finish()
         # EOS should have triggered
         self.assert_state_is(PlaybackState.STOPPED)
         self.assert_current_track_is(None)
 
-        self.playback.play(self.tl_tracks.get()[-1]).get()
+        self.playback.play(tlid=self.tl_tracks.get()[-1].tlid).get()
         self.playback.next().get()
         self.assert_state_is(PlaybackState.STOPPED)
         self.assert_current_track_is(None)
@@ -267,7 +279,7 @@ class LocalPlaybackProviderTest(unittest.TestCase):
         uri = self.backend.playback.translate_uri(self.tracks[1].uri).get()
         self.audio.trigger_fake_playback_failure(uri)
 
-        self.playback.play(self.tl_tracks.get()[2]).get()
+        self.playback.play(tlid=self.tl_tracks.get()[2].tlid).get()
         self.assert_current_track_is(self.tracks[2])
         self.playback.previous().get()
         self.assert_current_track_is_not(self.tracks[1])
@@ -660,7 +672,7 @@ class LocalPlaybackProviderTest(unittest.TestCase):
 
     @populate_tracklist
     def test_tracklist_position_at_end_of_playlist(self):
-        self.playback.play(self.tl_tracks.get()[-1]).get()
+        self.playback.play(tlid=self.tl_tracks.get()[-1].tlid).get()
         self.trigger_about_to_finish()
         # EOS should have triggered
         self.assert_current_track_index_is(None)
@@ -820,7 +832,7 @@ class LocalPlaybackProviderTest(unittest.TestCase):
 
     @populate_tracklist
     def test_seek_beyond_end_of_song_for_last_track(self):
-        self.playback.play(self.tl_tracks.get()[-1]).get()
+        self.playback.play(tlid=self.tl_tracks.get()[-1].tlid).get()
         self.playback.seek(self.tracks[-1].length * 100)
         self.assert_state_is(PlaybackState.STOPPED)
 
@@ -955,7 +967,7 @@ class LocalPlaybackProviderTest(unittest.TestCase):
 
     @populate_tracklist
     def test_end_of_playlist_stops(self):
-        self.playback.play(self.tl_tracks.get()[-1]).get()
+        self.playback.play(tlid=self.tl_tracks.get()[-1].tlid).get()
         self.trigger_about_to_finish()
         # EOS should have triggered
         self.assert_state_is(PlaybackState.STOPPED)
@@ -1047,8 +1059,3 @@ class LocalPlaybackProviderTest(unittest.TestCase):
             if len(actual) > len(expected):
                 break
         assert actual == expected
-
-    @populate_tracklist
-    def test_playing_track_that_isnt_in_playlist(self):
-        with self.assertRaises(AssertionError):
-            self.playback.play(TlTrack(17, Track())).get()
