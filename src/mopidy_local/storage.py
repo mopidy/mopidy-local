@@ -178,7 +178,7 @@ class LocalStorageProvider:
         if model.name:
             name = model.name
         else:
-            name = translator.local_uri_to_path(model.uri, "").name
+            name = translator.local_uri_to_path(model.uri, pathlib.Path()).name
         if model.album and model.album.name:
             album = self._validate_album(model.album)
         else:

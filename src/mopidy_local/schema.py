@@ -322,7 +322,9 @@ def insert_artists(c, artists):
             "uri": artist.uri,
             "name": artist.name,
             "sortname": artist.sortname,
-            "musicbrainz_id": artist.musicbrainz_id,
+            "musicbrainz_id": (
+                str(artist.musicbrainz_id) if artist.musicbrainz_id else None
+            ),
         },
     )
     return artist.uri
@@ -341,7 +343,9 @@ def insert_album(c, album, images=None):
             "num_tracks": album.num_tracks,
             "num_discs": album.num_discs,
             "date": album.date,
-            "musicbrainz_id": album.musicbrainz_id,
+            "musicbrainz_id": (
+                str(album.musicbrainz_id) if album.musicbrainz_id else None
+            ),
             "images": " ".join(images) if images else None,
         },
     )
@@ -366,7 +370,9 @@ def insert_track(c, track, images=None):
             "length": track.length,
             "bitrate": track.bitrate,
             "comment": track.comment,
-            "musicbrainz_id": track.musicbrainz_id,
+            "musicbrainz_id": (
+                str(track.musicbrainz_id) if track.musicbrainz_id else None
+            ),
             "last_modified": track.last_modified,
         },
     )
@@ -496,11 +502,11 @@ def _track(row):
                 ),
             ]
         else:
-            albumartists = None
+            albumartists = []
         kwargs["album"] = Album(
             uri=row.album_uri,
             name=row.album_name,
-            artists=albumartists,
+            artists=frozenset(albumartists),
             num_tracks=row.album_num_tracks,
             num_discs=row.album_num_discs,
             date=row.album_date,

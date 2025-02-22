@@ -1,5 +1,6 @@
 import sqlite3
 import unittest
+from uuid import UUID
 
 from mopidy.models import Album, Artist, Ref, Track
 
@@ -10,11 +11,19 @@ DBPATH = ":memory:"
 
 class SchemaTest(unittest.TestCase):
     artists = [
-        Artist(uri="local:artist:0", name="artist #0", musicbrainz_id="1234a-987c"),
+        Artist(
+            uri="local:artist:0",
+            name="artist #0",
+            musicbrainz_id=UUID("b5e8922b-5dee-44f2-85e1-7e78b69a7e1d"),
+        ),
         Artist(uri="local:artist:1", name="artist #1"),
     ]
     albums = [
-        Album(uri="local:album:0", name="album #0", musicbrainz_id="1234a-3421d"),
+        Album(
+            uri="local:album:0",
+            name="album #0",
+            musicbrainz_id=UUID("13b290bc-465d-4cb8-85df-9c18c0614a66"),
+        ),
         Album(uri="local:album:1", name="album #1", artists=[artists[0]]),
         Album(uri="local:album:2", name="album #2", artists=[artists[1]]),
     ]
@@ -34,7 +43,7 @@ class SchemaTest(unittest.TestCase):
         Track(
             uri="local:track:2",
             name="track #2",
-            date="2020-10",
+            date="2020-09-01",
             album=albums[0],
         ),
         Track(
@@ -49,7 +58,7 @@ class SchemaTest(unittest.TestCase):
             album=albums[2],
             composers=[artists[0]],
             performers=[artists[0]],
-            musicbrainz_id="1234a-567b",
+            musicbrainz_id=UUID("e6cea07e-9d2d-4cd2-912f-94fd11c99763"),
         ),
     ]
 
@@ -100,15 +109,15 @@ class SchemaTest(unittest.TestCase):
             track.date for track in self.tracks if track.date
         ] == schema.list_distinct(self.connection, "date")
         assert [self.tracks[0].genre] == schema.list_distinct(self.connection, "genre")
-        assert [self.tracks[4].musicbrainz_id] == schema.list_distinct(
+        assert [str(self.tracks[4].musicbrainz_id)] == schema.list_distinct(
             self.connection,
             "musicbrainz_trackid",
         )
-        assert [self.artists[0].musicbrainz_id] == schema.list_distinct(
+        assert [str(self.artists[0].musicbrainz_id)] == schema.list_distinct(
             self.connection,
             "musicbrainz_artistid",
         )
-        assert [self.albums[0].musicbrainz_id] == schema.list_distinct(
+        assert [str(self.albums[0].musicbrainz_id)] == schema.list_distinct(
             self.connection,
             "musicbrainz_albumid",
         )
@@ -116,7 +125,7 @@ class SchemaTest(unittest.TestCase):
     def test_dates(self):
         with self.connection as c:
             results = schema.dates(c)
-            assert results == ["2014-01-01", "2015-03-15", "2020-10-01"]
+            assert results == ["2014-01-01", "2015-03-15", "2020-09-01", "2020-10-01"]
 
             results = schema.dates(c, format="%Y")
             assert results == ["2014", "2015", "2020"]
