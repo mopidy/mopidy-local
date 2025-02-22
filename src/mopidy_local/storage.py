@@ -15,8 +15,8 @@ logger = logging.getLogger(__name__)
 def check_dirs_and_files(config):
     if not pathlib.Path(config["local"]["media_dir"]).is_dir():
         logger.warning(
-            "Local media dir %s does not exist or we lack permissions to the "
-            "directory or one of its parents" % config["local"]["media_dir"],
+            f"Local media dir {config['local']['media_dir']} does not exist or "
+            "we lack permissions to the directory or one of its parents"
         )
 
 
@@ -258,7 +258,7 @@ class LocalStorageProvider:
         except Exception as e:
             logger.error("Error getting image size for %r: %r", source, e)
         if width and height:
-            name = "%s-%dx%d.%s" % (digest, width, height, what)
+            name = f"{digest}-{width}x{height}.{what}"
         else:
             name = f"{digest}.{what}"
         image_path = self._image_dir / name

@@ -91,7 +91,6 @@ ignore = [
     "TD003",  # missing-todo-link
     "TRY003", # raise-vanilla-args
     "TRY400", # error-instead-of-exception
-    "UP031",  # printf-string-formatting  # TODO
     #
     # Conflicting with `ruff format`
     "COM812", # missing-trailing-comma
