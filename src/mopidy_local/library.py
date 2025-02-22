@@ -4,7 +4,7 @@ import sqlite3
 
 import uritools
 from mopidy import backend, models
-from mopidy.models import Ref, SearchResult
+from mopidy.models import Ref, RefType, SearchResult
 from mopidy.types import Uri
 
 from . import Extension, schema
@@ -52,11 +52,11 @@ class LocalLibraryProvider(backend.LibraryProvider):
     def lookup(self, uri):
         try:
             if uri.startswith("local:album"):
-                return list(schema.lookup(self._connect(), Ref.ALBUM, uri))
+                return list(schema.lookup(self._connect(), RefType.ALBUM, uri))
             if uri.startswith("local:artist"):
-                return list(schema.lookup(self._connect(), Ref.ARTIST, uri))
+                return list(schema.lookup(self._connect(), RefType.ARTIST, uri))
             if uri.startswith("local:track"):
-                return list(schema.lookup(self._connect(), Ref.TRACK, uri))
+                return list(schema.lookup(self._connect(), RefType.TRACK, uri))
             msg = "Invalid lookup URI"
             raise ValueError(msg)  # noqa: TRY301
         except Exception as e:
@@ -127,27 +127,27 @@ class LocalLibraryProvider(backend.LibraryProvider):
         return self._connection
 
     def _browse_album(self, uri, order=("disc_no", "track_no", "name")):
-        return schema.browse(self._connect(), Ref.TRACK, order, album=uri)
+        return schema.browse(self._connect(), RefType.TRACK, order, album=uri)
 
     def _browse_artist(self, uri, order=("type", "name COLLATE NOCASE")):
         with self._connect() as c:
-            albums = schema.browse(c, Ref.ALBUM, order, albumartist=uri)
+            albums = schema.browse(c, RefType.ALBUM, order, albumartist=uri)
             refs = schema.browse(c, order=order, artist=uri)
         album_uris, tracks = {ref.uri for ref in albums}, []
         for ref in refs:
-            if ref.type == Ref.ALBUM and ref.uri not in album_uris:
+            if ref.type == RefType.ALBUM and ref.uri not in album_uris:
                 albums.append(
                     Ref.directory(
                         uri=uritools.uricompose(
                             "local",
                             None,
                             "directory",
-                            dict(type=Ref.TRACK, album=ref.uri, artist=uri),  # noqa: C408
+                            dict(type=RefType.TRACK, album=ref.uri, artist=uri),  # noqa: C408
                         ),
                         name=ref.name,
                     ),
                 )
-            elif ref.type == Ref.TRACK:
+            elif ref.type == RefType.TRACK:
                 tracks.append(ref)
             else:
                 logger.debug("Skipped SQLite browse result %s", ref.uri)
@@ -168,29 +168,29 @@ class LocalLibraryProvider(backend.LibraryProvider):
 
         # Fix #38: keep sort order of album tracks; this also applies
         # to composers and performers
-        if type_ == Ref.TRACK and "album" in query:
+        if type_ == RefType.TRACK and "album" in query:
             order = ("disc_no", "track_no", "name")
-        if type_ == Ref.ARTIST and self._config["use_artist_sortname"]:
+        if type_ == RefType.ARTIST and self._config["use_artist_sortname"]:
             order = ("coalesce(sortname, name) COLLATE NOCASE",)
         roles = role or ("artist", "albumartist")  # TODO: re-think 'roles'...
 
         refs = []
         for ref in schema.browse(self._connect(), type_, order, role=roles, **query):
-            if ref.type == Ref.TRACK or (not query and not role):
+            if ref.type == RefType.TRACK or (not query and not role):
                 refs.append(ref)
-            elif ref.type == Ref.ALBUM:
+            elif ref.type == RefType.ALBUM:
                 refs.append(
                     Ref.directory(
                         uri=uritools.uricompose(
                             "local",
                             None,
                             "directory",
-                            dict(query, type=Ref.TRACK, album=ref.uri),
+                            dict(query, type=RefType.TRACK, album=ref.uri),
                         ),
                         name=ref.name,
                     ),
                 )
-            elif ref.type == Ref.ARTIST:
+            elif ref.type == RefType.ARTIST:
                 refs.append(
                     Ref.directory(
                         uri=uritools.uricompose(

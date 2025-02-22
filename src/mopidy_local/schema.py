@@ -4,7 +4,7 @@ import pathlib
 import re
 import sqlite3
 
-from mopidy.models import Album, Artist, Image, Ref, Track
+from mopidy.models import Album, Artist, Image, Ref, RefType, Track
 
 _IMAGE_SIZE_RE = re.compile(r".*-(\d+)x(\d+)\.(?:png|gif|jpeg)$")
 
@@ -22,7 +22,7 @@ SELECT album.images AS images
 _BROWSE_QUERIES = {
     None: f"""
     SELECT CASE WHEN album.uri IS NULL THEN
-           '{Ref.TRACK}' ELSE '{Ref.ALBUM}' END AS type,
+           '{RefType.TRACK}' ELSE '{RefType.ALBUM}' END AS type,
            coalesce(album.uri, track.uri) AS uri,
            coalesce(album.name, track.name) AS name
       FROM track LEFT OUTER JOIN album ON track.album = album.uri
@@ -30,20 +30,20 @@ _BROWSE_QUERIES = {
      GROUP BY coalesce(album.uri, track.uri)
      ORDER BY %s
     """,  # noqa: S608
-    Ref.ALBUM: f"""
-    SELECT '{Ref.ALBUM}' AS type, uri AS uri, name AS name
+    RefType.ALBUM: f"""
+    SELECT '{RefType.ALBUM}' AS type, uri AS uri, name AS name
       FROM album
      WHERE %s
      ORDER BY %s
     """,  # noqa: S608
-    Ref.ARTIST: f"""
-    SELECT '{Ref.ARTIST}' AS type, uri AS uri, name AS name
+    RefType.ARTIST: f"""
+    SELECT '{RefType.ARTIST}' AS type, uri AS uri, name AS name
       FROM artist
      WHERE %s
      ORDER BY %s
-    """,  # noqa: S608
-    Ref.TRACK: f"""
-    SELECT '{Ref.TRACK}' AS type, uri AS uri, name AS name
+     """,  # noqa: S608
+    RefType.TRACK: f"""
+    SELECT '{RefType.TRACK}' AS type, uri AS uri, name AS name
       FROM track
      WHERE %s
      ORDER BY %s
@@ -61,7 +61,7 @@ _BROWSE_FILTERS = {
         "performer": "track.performers = ?",
         "max-age": "track.last_modified >= (strftime('%s', 'now') - ?) * 1000",
     },
-    Ref.ARTIST: {
+    RefType.ARTIST: {
         "role": {
             "albumartist": """EXISTS (
                 SELECT * FROM album WHERE album.artists = artist.uri
@@ -77,7 +77,7 @@ _BROWSE_FILTERS = {
             )""",
         },
     },
-    Ref.ALBUM: {
+    RefType.ALBUM: {
         "albumartist": "artists = ?",
         "artist": """? IN (
             SELECT artists FROM track WHERE album = album.uri
@@ -101,7 +101,7 @@ _BROWSE_FILTERS = {
                AND last_modified >= (strftime('%s', 'now') - ?) * 1000
         )""",
     },
-    Ref.TRACK: {
+    RefType.TRACK: {
         "album": "album = ?",
         "albumartist": """? IN (
             SELECT artists FROM album WHERE uri = track.album
@@ -116,13 +116,13 @@ _BROWSE_FILTERS = {
 }
 
 _LOOKUP_QUERIES = {
-    Ref.ALBUM: """
+    RefType.ALBUM: """
     SELECT * FROM tracks WHERE album_uri = ?
     """,
-    Ref.ARTIST: """
+    RefType.ARTIST: """
     SELECT * FROM tracks WHERE ? IN (artist_uri, albumartist_uri)
     """,
-    Ref.TRACK: """
+    RefType.TRACK: """
     SELECT * FROM tracks WHERE uri = ?
     """,
 }
