@@ -87,7 +87,6 @@ ignore = [
     "G002",   # logging-percent-format
     "G004",   # logging-f-string
     "ISC001", # single-line-implicit-string-concatenation
-    "RUF012", # mutable-class-default  # TODO
     "S101",   # assert  # TODO
     "TD002",  # missing-todo-author
     "TD003",  # missing-todo-link
@@ -110,6 +109,7 @@ ignore = [
     "PLR2004", # magic-value-comparison
     "PT011",   # pytest-raises-too-broad  # TODO
     "PT027",   # pytest-unittest-raises-assertion
+    "RUF012",  # mutable-class-default  # TODO
     "S101",    # assert
     "SLF001",  # private-member-access
     "TRY002",  # raise-vanilla-class
