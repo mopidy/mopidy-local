@@ -191,7 +191,7 @@ def load(c):
         else:
             logger.info("Creating SQLite database schema v%s", schema_version)
             filename = "schema.sql"
-        with open(sql_dir / filename) as fh:
+        with (sql_dir / filename).open() as fh:
             c.executescript(fh.read())
         new_version = c.execute("PRAGMA user_version").fetchone()[0]
         assert new_version != user_version

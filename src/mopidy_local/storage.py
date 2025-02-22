@@ -211,7 +211,7 @@ class LocalStorageProvider:
             try:
                 # TODO: Is this a gst.Buffer or plain str/bytes type?
                 data = getattr(image, "data", image)
-                images.add(self._get_or_create_image_file(None, data))
+                images.add(self._image_from_embedded_data(data))
             except Exception as e:
                 logger.warning("Error extracting images for %r: %r", uri, e)
         # look for external album art
@@ -220,26 +220,32 @@ class LocalStorageProvider:
         for pattern in self._patterns:
             for match_path in dir_path.glob(pattern):
                 try:
-                    images.add(self._get_or_create_image_file(match_path))
+                    images.add(self._image_from_path(match_path))
                 except Exception as e:
                     logger.warning(
                         f"Cannot read image file {match_path.as_uri()}: {e!r}",
                     )
         return images
 
-    def _get_or_create_image_file(self, path, data=None):
-        if not data:
-            with open(path, "rb") as f:
-                header = f.read(MIN_BYTES_FOR_IMAGE_TYPE)
+    def _image_from_path(self, path: pathlib.Path):
+        with path.open("rb") as f:
+            header = f.read(MIN_BYTES_FOR_IMAGE_TYPE)
+            data = header + f.read()
+        return self._save_image(
+            data=data,
+            source=path.as_uri(),
+            what=get_image_type_from_header(header),
+        )
 
-                what = get_image_type_from_header(header)
-                data_source = path.as_uri()
-                data = header + f.read()
-        else:
-            header = data[:MIN_BYTES_FOR_IMAGE_TYPE]
-            what = get_image_type_from_header(header)
-            data_source = "embedded image"
+    def _image_from_embedded_data(self, data: bytes):
+        header = data[:MIN_BYTES_FOR_IMAGE_TYPE]
+        return self._save_image(
+            data=data,
+            source="embedded image",
+            what=get_image_type_from_header(header),
+        )
 
+    def _save_image(self, *, data: bytes, source: str, what: str):
         digest = hashlib.md5(data).hexdigest()  # noqa: S324
         width, height = None, None
         try:
@@ -250,13 +256,13 @@ class LocalStorageProvider:
             elif what == "jpeg":
                 width, height = get_image_size_jpeg(data)
         except Exception as e:
-            logger.error("Error getting image size for %r: %r", data_source, e)
+            logger.error("Error getting image size for %r: %r", source, e)
         if width and height:
             name = "%s-%dx%d.%s" % (digest, width, height, what)
         else:
             name = f"{digest}.{what}"
         image_path = self._image_dir / name
         if not image_path.is_file():
-            logger.info(f"Creating file {image_path.as_uri()} from {data_source}")
+            logger.info(f"Creating file {image_path.as_uri()} from {source}")
             image_path.write_bytes(data)
         return uritools.urijoin(self._base_uri, name)

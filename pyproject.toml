@@ -87,7 +87,6 @@ ignore = [
     "G002",   # logging-percent-format
     "G004",   # logging-f-string
     "ISC001", # single-line-implicit-string-concatenation
-    "PTH123", # builtin-open  # TODO
     "RUF012", # mutable-class-default  # TODO
     "S101",   # assert  # TODO
     "TD002",  # missing-todo-author
