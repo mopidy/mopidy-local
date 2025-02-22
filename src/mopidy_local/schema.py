@@ -194,7 +194,9 @@ def load(c):
         with (sql_dir / filename).open() as fh:
             c.executescript(fh.read())
         new_version = c.execute("PRAGMA user_version").fetchone()[0]
-        assert new_version != user_version
+        if new_version == user_version:
+            msg = "Database schema upgrade failed"
+            raise Exception(msg)
         user_version = new_version
     return user_version
 

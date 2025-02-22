@@ -87,7 +87,6 @@ ignore = [
     "G002",   # logging-percent-format
     "G004",   # logging-f-string
     "ISC001", # single-line-implicit-string-concatenation
-    "S101",   # assert  # TODO
     "TD002",  # missing-todo-author
     "TD003",  # missing-todo-link
     "TRY003", # raise-vanilla-args

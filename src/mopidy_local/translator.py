@@ -30,7 +30,9 @@ def local_uri_to_path(local_uri: str, media_dir: Path) -> Path:
 def path_to_file_uri(path: str | bytes | Path) -> str:
     """Convert absolute path to file URI."""
     ppath = Path(os.fsdecode(path))
-    assert ppath.is_absolute()
+    if not ppath.is_absolute():
+        msg = "Path must be absolute"
+        raise ValueError(msg)
     return ppath.as_uri()
 
 
