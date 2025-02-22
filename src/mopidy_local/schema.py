@@ -4,7 +4,7 @@ import pathlib
 import re
 import sqlite3
 
-from mopidy.models import Album, Artist, Image, Ref, Track
+from mopidy.models import Album, Artist, Image, Ref, RefType, Track
 
 _IMAGE_SIZE_RE = re.compile(r".*-(\d+)x(\d+)\.(?:png|gif|jpeg)$")
 
@@ -20,37 +20,34 @@ SELECT album.images AS images
 """
 
 _BROWSE_QUERIES = {
-    None: """
-    SELECT CASE WHEN album.uri IS NULL THEN '%s' ELSE '%s' END AS type,
+    None: f"""
+    SELECT CASE WHEN album.uri IS NULL THEN
+           '{RefType.TRACK}' ELSE '{RefType.ALBUM}' END AS type,
            coalesce(album.uri, track.uri) AS uri,
            coalesce(album.name, track.name) AS name
       FROM track LEFT OUTER JOIN album ON track.album = album.uri
-     WHERE %%s
+     WHERE %s
      GROUP BY coalesce(album.uri, track.uri)
-     ORDER BY %%s
-    """  # noqa: S608
-    % (Ref.TRACK, Ref.ALBUM),
-    Ref.ALBUM: """
-    SELECT '%s' AS type, uri AS uri, name AS name
+     ORDER BY %s
+    """,  # noqa: S608
+    RefType.ALBUM: f"""
+    SELECT '{RefType.ALBUM}' AS type, uri AS uri, name AS name
       FROM album
-     WHERE %%s
-     ORDER BY %%s
-    """  # noqa: S608
-    % Ref.ALBUM,
-    Ref.ARTIST: """
-    SELECT '%s' AS type, uri AS uri, name AS name
+     WHERE %s
+     ORDER BY %s
+    """,  # noqa: S608
+    RefType.ARTIST: f"""
+    SELECT '{RefType.ARTIST}' AS type, uri AS uri, name AS name
       FROM artist
-     WHERE %%s
-     ORDER BY %%s
-    """  # noqa: S608
-    % Ref.ARTIST,
-    Ref.TRACK: """
-    SELECT '%s' AS type, uri AS uri, name AS name
+     WHERE %s
+     ORDER BY %s
+     """,  # noqa: S608
+    RefType.TRACK: f"""
+    SELECT '{RefType.TRACK}' AS type, uri AS uri, name AS name
       FROM track
-     WHERE %%s
-     ORDER BY %%s
-    """  # noqa: S608
-    % Ref.TRACK,
+     WHERE %s
+     ORDER BY %s
+    """,  # noqa: S608
 }
 
 _BROWSE_FILTERS = {
@@ -64,7 +61,7 @@ _BROWSE_FILTERS = {
         "performer": "track.performers = ?",
         "max-age": "track.last_modified >= (strftime('%s', 'now') - ?) * 1000",
     },
-    Ref.ARTIST: {
+    RefType.ARTIST: {
         "role": {
             "albumartist": """EXISTS (
                 SELECT * FROM album WHERE album.artists = artist.uri
@@ -80,7 +77,7 @@ _BROWSE_FILTERS = {
             )""",
         },
     },
-    Ref.ALBUM: {
+    RefType.ALBUM: {
         "albumartist": "artists = ?",
         "artist": """? IN (
             SELECT artists FROM track WHERE album = album.uri
@@ -104,7 +101,7 @@ _BROWSE_FILTERS = {
                AND last_modified >= (strftime('%s', 'now') - ?) * 1000
         )""",
     },
-    Ref.TRACK: {
+    RefType.TRACK: {
         "album": "album = ?",
         "albumartist": """? IN (
             SELECT artists FROM album WHERE uri = track.album
@@ -119,13 +116,13 @@ _BROWSE_FILTERS = {
 }
 
 _LOOKUP_QUERIES = {
-    Ref.ALBUM: """
+    RefType.ALBUM: """
     SELECT * FROM tracks WHERE album_uri = ?
     """,
-    Ref.ARTIST: """
+    RefType.ARTIST: """
     SELECT * FROM tracks WHERE ? IN (artist_uri, albumartist_uri)
     """,
-    Ref.TRACK: """
+    RefType.TRACK: """
     SELECT * FROM tracks WHERE uri = ?
     """,
 }
@@ -187,14 +184,16 @@ def load(c):
     while user_version != schema_version:
         if user_version:
             logger.info("Upgrading SQLite database schema v%s", user_version)
-            filename = "upgrade-v%s.sql" % user_version
+            filename = f"upgrade-v{user_version}.sql"
         else:
             logger.info("Creating SQLite database schema v%s", schema_version)
             filename = "schema.sql"
-        with open(sql_dir / filename) as fh:
+        with (sql_dir / filename).open() as fh:
             c.executescript(fh.read())
         new_version = c.execute("PRAGMA user_version").fetchone()[0]
-        assert new_version != user_version
+        if new_version == user_version:
+            msg = "Database schema upgrade failed"
+            raise AssertionError(msg)
         user_version = new_version
     return user_version
 
@@ -205,24 +204,23 @@ def tracks(c):
 
 def list_distinct(c, field, query=()):
     if field not in _SEARCH_FIELDS:
-        raise LookupError("Invalid search field: %s" % field)
-    sql = (
-        """
-    SELECT DISTINCT %s AS field
+        msg = f"Invalid search field: {field}"
+        raise LookupError(msg)
+    sql = f"""
+    SELECT DISTINCT {field} AS field
       FROM search
      WHERE field IS NOT NULL
     """  # noqa: S608
-        % field
-    )
     terms = []
     params = []
     for key, value in query:
         if key == "any":
-            terms.append("? IN (%s)" % ",".join(_SEARCH_FIELDS))
+            terms.append("? IN ({})".format(",".join(_SEARCH_FIELDS)))
         elif key in _SEARCH_FIELDS:
-            terms.append("%s = ?" % key)
+            terms.append(f"{key} = ?")
         else:
-            raise LookupError("Invalid query field: %s" % key)
+            msg = f"Invalid query field: {key}"
+            raise LookupError(msg)
         params.append(value)
     if terms:
         sql += " AND " + " AND ".join(terms)
@@ -277,12 +275,12 @@ def search_tracks(c, query, limit, offset, exact, filters=()):  # noqa: PLR0913
     for kwargs in filters:
         f, p = _filters(_SEARCH_FILTERS, **kwargs)
         if f:
-            clauses.append("(%s)" % " AND ".join(f))
+            clauses.append("({})".format(" AND ".join(f)))
             params.extend(p)
         else:
             logger.debug("Skipped SQLite search filter %r", kwargs)
     if clauses:
-        sql += " AND (%s)" % " OR ".join(clauses)
+        sql += " AND ({})".format(" OR ".join(clauses))
     sql += " LIMIT ? OFFSET ?"
     params += [limit, offset]
     logger.debug("SQLite search query %r: %s", params, sql)
@@ -454,11 +452,12 @@ def _indexed_query(query):
     params = []
     for field, value in query:
         if field == "any":
-            terms.append("? IN (%s)" % ",".join(_SEARCH_FIELDS))
+            terms.append("? IN ({})".format(",".join(_SEARCH_FIELDS)))
         elif field in _SEARCH_FIELDS:
-            terms.append("%s = ?" % field)
+            terms.append(f"{field} = ?")
         else:
-            raise LookupError("Invalid search field: %s" % field)
+            msg = f"Invalid search field: {field}"
+            raise LookupError(msg)
         params.append(value)
     return (_SEARCH_SQL % ("search", " AND ".join(terms)), params)
 
@@ -470,9 +469,10 @@ def _fulltext_query(query):
         if field == "any":
             terms.append(_SEARCH_SQL % ("fts", "fts MATCH ?"))
         elif field in _SEARCH_FIELDS:
-            terms.append(_SEARCH_SQL % ("fts", "%s MATCH ?" % field))
+            terms.append(_SEARCH_SQL % ("fts", f"{field} MATCH ?"))
         else:
-            raise LookupError("Invalid search field: %s" % field)
+            msg = f"Invalid search field: {field}"
+            raise LookupError(msg)
         params.append(value)
     return (" INTERSECT ".join(terms), params)
 

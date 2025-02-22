@@ -11,7 +11,7 @@ def path_to_data_dir(name) -> pathlib.Path:
 
 
 def generate_song(i) -> Uri:
-    return Uri("local:track:song%s.wav" % i)
+    return Uri(f"local:track:song{i}.wav")
 
 
 def populate_tracklist(func):
