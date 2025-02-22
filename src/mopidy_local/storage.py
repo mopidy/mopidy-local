@@ -63,7 +63,8 @@ def get_image_type_from_header(header: bytes) -> str:
     # original source: https://github.com/sphinx-doc/sphinx/commit/a502e7
 
     if len(header) < MIN_BYTES_FOR_IMAGE_TYPE:
-        raise ValueError("Unknown image type")
+        msg = "Unknown image type"
+        raise ValueError(msg)
 
     if header.startswith(b"\x89PNG\r\n\x1a\n"):
         return "png"
@@ -74,7 +75,8 @@ def get_image_type_from_header(header: bytes) -> str:
     if header.startswith(b"\xff\xd8"):
         return "jpeg"
 
-    raise ValueError("Unknown image type")
+    msg = "Unknown image type"
+    raise ValueError(msg)
 
 
 class LocalStorageProvider:
@@ -160,21 +162,24 @@ class LocalStorageProvider:
 
     def _validate_artist(self, model):
         if not model.name:
-            raise ValueError("Empty artist name")
+            msg = "Empty artist name"
+            raise ValueError(msg)
         if not model.uri:
             model = model.replace(uri=model_uri("artist", model))
         return model
 
     def _validate_album(self, model):
         if not model.name:
-            raise ValueError("Empty album name")
+            msg = "Empty album name"
+            raise ValueError(msg)
         if not model.uri:
             model = model.replace(uri=model_uri("album", model))
         return model.replace(artists=list(map(self._validate_artist, model.artists)))
 
     def _validate_track(self, model):
         if not model.uri:
-            raise ValueError("Empty track URI")
+            msg = "Empty track URI"
+            raise ValueError(msg)
         if model.name:
             name = model.name
         else:

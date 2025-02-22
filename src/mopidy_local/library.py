@@ -57,7 +57,8 @@ class LocalLibraryProvider(backend.LibraryProvider):
                 return list(schema.lookup(self._connect(), Ref.ARTIST, uri))
             if uri.startswith("local:track"):
                 return list(schema.lookup(self._connect(), Ref.TRACK, uri))
-            raise ValueError("Invalid lookup URI")  # noqa: TRY301
+            msg = "Invalid lookup URI"
+            raise ValueError(msg)  # noqa: TRY301
         except Exception as e:
             logger.error("Lookup error for %s: %s", uri, e)
             return []
@@ -72,7 +73,8 @@ class LocalLibraryProvider(backend.LibraryProvider):
                 return self._browse_artist(uri)
             if uri.startswith("local:album"):
                 return self._browse_album(uri)
-            raise ValueError("Invalid browse URI")  # noqa: TRY301
+            msg = "Invalid browse URI"
+            raise ValueError(msg)  # noqa: TRY301
         except Exception as e:
             logger.error("Error browsing %s: %s", uri, e)
             return []

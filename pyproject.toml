@@ -82,7 +82,6 @@ ignore = [
     "ANN401", # any-type
     "BLE001", # blind-except  # TODO
     "D",      # pydocstyle
-    "EM101",  # raw-string-in-exception  # TODO
     "FIX001", # line-contains-fixme
     "FIX002", # line-contains-todo
     "G002",   # logging-percent-format
