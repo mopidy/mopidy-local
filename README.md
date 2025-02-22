@@ -311,23 +311,6 @@ To check for type errors, use [pyright](https://microsoft.github.io/pyright/):
 pyright .
 ```
 
-### Setup before first release
-
-Before the first release, you must [enable trusted publishing on
-PyPI](https://docs.pypi.org/trusted-publishers/creating-a-project-through-oidc/)
-so that the `release.yml` GitHub Action can create the PyPI project and publish
-releases to PyPI.
-
-When following the instructions linked above, use the following values in the
-form at PyPI:
-
-- Publisher: GitHub
-- PyPI project name: `mopidy-local`
-- Owner: `mopidy`
-- Repository name: `mopidy-local`
-- Workflow name: `release.yml`
-- Environment name: `pypi` (must match environment name in `release.yml`)
-
 ### Making a release
 
 To make a release to PyPI, go to the project's [GitHub releases
