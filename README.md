@@ -1,8 +1,8 @@
 # mopidy-local
 
-![PyPI - Version](https://img.shields.io/pypi/v/mopidy-local?link=https://pypi.org/p/mopidy-local)
-![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/mopidy/mopidy-local/ci.yml?link=https://github.com/mopidy/mopidy-local/actions/workflows/ci.yml)
-![Codecov](https://img.shields.io/codecov/c/gh/mopidy/mopidy-local?link=https://codecov.io/gh/mopidy/mopidy-local)
+[![Latest PyPI version](https://img.shields.io/pypi/v/mopidy-local)](https://pypi.org/p/mopidy-local)
+[![CI build status](https://img.shields.io/github/actions/workflow/status/mopidy/mopidy-local/ci.yml)](https://github.com/mopidy/mopidy-local/actions/workflows/ci.yml)
+[![Test coverage](https://img.shields.io/codecov/c/gh/mopidy/mopidy-local)](https://codecov.io/gh/mopidy/mopidy-local)
 
 [Mopidy](https://mopidy.com/) extension for playing music from your local music
 archive.
