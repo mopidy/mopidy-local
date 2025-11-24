@@ -57,14 +57,14 @@ class LocalPlaybackProviderTest(unittest.TestCase):
     def setUp(self):
         self.audio = dummy_audio.create_proxy()
         self.backend = cast(
-            backend.BackendProxy,
+            "backend.BackendProxy",
             actor.LocalBackend.start(
                 config=self.config,
                 audio=self.audio,
             ).proxy(),
         )
         self.core = cast(
-            core.CoreProxy,
+            "core.CoreProxy",
             core.Core.start(
                 audio=self.audio,
                 backends=[self.backend],
@@ -1048,7 +1048,7 @@ class LocalPlaybackProviderTest(unittest.TestCase):
         # Covers underlying issue IssueGH17RegressionTest tests for.
         shuffle_mock.side_effect = lambda tracks: tracks.reverse()
 
-        expected = self.tl_tracks.get()[::-1] + [None]
+        expected = [*self.tl_tracks.get()[::-1], None]
         actual = []
 
         self.playback.play().get()
