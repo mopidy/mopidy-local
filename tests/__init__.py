@@ -24,7 +24,7 @@ def populate_tracklist(func):
     return wrapper
 
 
-class IsA:
+class IsA:  # noqa: PLW1641
     def __init__(self, klass):
         self.klass = klass
 

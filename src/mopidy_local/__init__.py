@@ -34,18 +34,18 @@ class Extension(ext.Extension):
         return schema
 
     def setup(self, registry):
-        from .actor import LocalBackend
+        from .actor import LocalBackend  # noqa: PLC0415
 
         registry.add("backend", LocalBackend)
         registry.add("http:app", {"name": self.ext_name, "factory": self.webapp})
 
     def get_command(self):
-        from .commands import LocalCommand
+        from .commands import LocalCommand  # noqa: PLC0415
 
         return LocalCommand()
 
     def webapp(self, config, core):  # noqa: ARG002
-        from .web import ImageHandler, IndexHandler
+        from .web import ImageHandler, IndexHandler  # noqa: PLC0415
 
         image_dir = self.get_image_dir(config)
         return [
