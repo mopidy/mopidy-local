@@ -676,7 +676,7 @@ class LocalPlaybackProviderTest(unittest.TestCase):
         # EOS should have triggered
         self.assert_current_track_index_is(None)
 
-    @mock.patch("mopidy.core.playback.PlaybackController._on_tracklist_change")
+    @mock.patch.object(core.PlaybackController, "_on_tracklist_change")
     def test_on_tracklist_change_gets_called(self, change_mock):
         self.tracklist.add([Track()]).get()
         change_mock.assert_called_once_with()
