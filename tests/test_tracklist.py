@@ -1,5 +1,6 @@
 import random
 import unittest
+from typing import cast
 
 import pykka
 from mopidy import core
@@ -37,11 +38,14 @@ class LocalTracklistProviderTest(unittest.TestCase):
             config=self.config,
             audio=self.audio,
         ).proxy()
-        self.core = core.Core.start(
-            audio=self.audio,
-            backends=[self.backend],
-            config=self.config,
-        ).proxy()
+        self.core = cast(
+            "core.CoreProxy",
+            core.Core.start(
+                audio=self.audio,
+                backends=[self.backend],
+                config=self.config,
+            ).proxy(),
+        )
         self.controller = self.core.tracklist
         self.playback = self.core.playback
 
