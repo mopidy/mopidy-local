@@ -1,10 +1,11 @@
 import contextlib
 import pathlib
 import unittest
+from typing import cast
 from unittest import mock
 
 import pykka
-from mopidy import core
+from mopidy import backend, core
 from mopidy.models import SearchResult, Track
 
 from mopidy_local import actor, storage, translator
@@ -29,15 +30,21 @@ class LocalLibraryProviderTest(unittest.TestCase):
 
     def setUp(self):
         self.audio = dummy_audio.create_proxy()
-        self.backend = actor.LocalBackend.start(
-            config=self.config,
-            audio=self.audio,
-        ).proxy()
-        self.core = core.Core.start(
-            audio=self.audio,
-            backends=[self.backend],
-            config=self.config,
-        ).proxy()
+        self.backend = cast(
+            "backend.BackendProxy",
+            actor.LocalBackend.start(
+                config=self.config,
+                audio=self.audio,
+            ).proxy(),
+        )
+        self.core = cast(
+            "core.CoreProxy",
+            core.Core.start(
+                audio=self.audio,
+                backends=[self.backend],
+                config=self.config,
+            ).proxy(),
+        )
         self.library = self.backend.library
         self.storage = storage.LocalStorageProvider(self.config)
         self.storage.load()

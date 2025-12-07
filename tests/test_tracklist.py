@@ -1,10 +1,11 @@
 import random
 import unittest
+from typing import cast
 
 import pykka
 from mopidy import core
-from mopidy.core import PlaybackState
 from mopidy.models import Playlist, Track
+from mopidy.types import PlaybackState
 
 from mopidy_local import actor
 from tests import (
@@ -37,11 +38,14 @@ class LocalTracklistProviderTest(unittest.TestCase):
             config=self.config,
             audio=self.audio,
         ).proxy()
-        self.core = core.Core.start(
-            audio=self.audio,
-            backends=[self.backend],
-            config=self.config,
-        ).proxy()
+        self.core = cast(
+            "core.CoreProxy",
+            core.Core.start(
+                audio=self.audio,
+                backends=[self.backend],
+                config=self.config,
+            ).proxy(),
+        )
         self.controller = self.core.tracklist
         self.playback = self.core.playback
 
@@ -75,7 +79,10 @@ class LocalTracklistProviderTest(unittest.TestCase):
 
     def test_add_at_position(self):
         for track in self.tracks[:-1]:
-            added = self.controller.add([track], 0).get()
+            added = self.controller.add(
+                tracks=[track],
+                at_position=0,
+            ).get()
             tracks = self.controller.get_tracks().get()
             tl_tracks = self.controller.get_tl_tracks().get()
 
@@ -86,7 +93,10 @@ class LocalTracklistProviderTest(unittest.TestCase):
     @populate_tracklist
     def test_add_at_position_outside_of_playlist(self):
         for track in self.tracks:
-            added = self.controller.add([track], len(self.tracks) + 2).get()
+            added = self.controller.add(
+                tracks=[track],
+                at_position=len(self.tracks) + 2,
+            ).get()
             tracks = self.controller.get_tracks().get()
             tl_tracks = self.controller.get_tl_tracks().get()
 
