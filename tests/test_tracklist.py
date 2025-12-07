@@ -3,8 +3,8 @@ import unittest
 
 import pykka
 from mopidy import core
-from mopidy.core import PlaybackState
 from mopidy.models import Playlist, Track
+from mopidy.types import PlaybackState
 
 from mopidy_local import actor
 from tests import (

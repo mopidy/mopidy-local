@@ -5,9 +5,8 @@ from unittest import mock
 
 import pykka
 from mopidy import backend, core
-from mopidy.core import PlaybackState
 from mopidy.models import TlTrack, Track
-from mopidy.types import DurationMs
+from mopidy.types import DurationMs, PlaybackState
 
 from mopidy_local import actor
 from tests import (
