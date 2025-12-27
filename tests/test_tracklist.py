@@ -135,7 +135,13 @@ class LocalTracklistProviderTest(unittest.TestCase):
         assert track == tl_tracks[1].track
 
     def test_filter_by_uri_returns_nothing_if_no_match(self):
-        self.controller.playlist = Playlist(tracks=[Track(uri="z"), Track(uri="y")])
+        self.controller.playlist = Playlist(
+            uri="pl",
+            tracks=[
+                Track(uri="z"),
+                Track(uri="y"),
+            ],
+        )
         assert self.controller.filter({"uri": ["a"]}).get() == []
 
     def test_filter_by_multiple_criteria_returns_elements_matching_all(self):
@@ -154,9 +160,9 @@ class LocalTracklistProviderTest(unittest.TestCase):
         assert t3 == result3[0].track
 
     def test_filter_by_criteria_that_is_not_present_in_all_elements(self):
-        track1 = Track()
+        track1 = Track(uri="a")
         track2 = Track(uri="b")
-        track3 = Track()
+        track3 = Track(uri="c")
 
         self.controller.add([track1, track2, track3])
         result = self.controller.filter({"uri": ["b"]}).get()
@@ -363,5 +369,5 @@ class LocalTracklistProviderTest(unittest.TestCase):
 
     def test_version_increases_when_adding_something(self):
         version = self.controller.get_version().get()
-        self.controller.add([Track()])
+        self.controller.add([Track(uri="a")])
         assert version < self.controller.get_version().get()

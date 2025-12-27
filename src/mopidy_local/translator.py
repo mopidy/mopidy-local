@@ -27,19 +27,19 @@ def local_uri_to_path(local_uri: str, media_dir: Path) -> Path:
     return media_dir / file_path
 
 
-def path_to_file_uri(path: str | bytes | Path) -> str:
+def path_to_file_uri(path: str | bytes | Path) -> Uri:
     """Convert absolute path to file URI."""
     ppath = Path(os.fsdecode(path))
     if not ppath.is_absolute():
         msg = "Path must be absolute"
         raise ValueError(msg)
-    return ppath.as_uri()
+    return Uri(ppath.as_uri())
 
 
-def path_to_local_track_uri(path: str | bytes | Path, media_dir: Path) -> str:
+def path_to_local_track_uri(path: str | bytes | Path, media_dir: Path) -> Uri:
     """Convert path to local track URI."""
     ppath = Path(os.fsdecode(path))
     if ppath.is_absolute():
         ppath = ppath.relative_to(media_dir)
     quoted_path = urllib.parse.quote(bytes(ppath))
-    return f"local:track:{quoted_path}"
+    return Uri(f"local:track:{quoted_path}")

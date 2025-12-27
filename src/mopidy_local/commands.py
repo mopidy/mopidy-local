@@ -252,7 +252,8 @@ class ScanCommand(commands.Command):
                         media_dir,
                     )
                     mtime = file_mtimes.get(absolute_path)
-                    track = tags.convert_tags_to_track(result.tags).replace(
+                    track = tags.convert_tags_to_track(
+                        result.tags,
                         uri=local_uri,
                         length=result.duration,
                         last_modified=mtime,
