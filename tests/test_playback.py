@@ -678,7 +678,7 @@ class LocalPlaybackProviderTest(unittest.TestCase):
 
     @mock.patch.object(core.PlaybackController, "_on_tracklist_change")
     def test_on_tracklist_change_gets_called(self, change_mock):
-        self.tracklist.add([Track()]).get()
+        self.tracklist.add([Track(uri="a")]).get()
         change_mock.assert_called_once_with()
 
     @populate_tracklist
