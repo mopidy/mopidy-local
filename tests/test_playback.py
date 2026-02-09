@@ -503,7 +503,7 @@ class LocalPlaybackProviderTest(unittest.TestCase):
     def test_end_of_track_skips_to_next_track_on_failure(self):
         # If backend's play() returns False, it is a failure.
         return_values = [True, False, True]
-        self.backend.playback.play = lambda: return_values.pop()
+        self.backend.playback.play = return_values.pop
         self.playback.play().get()
         self.assert_current_track_is(self.tracks[0])
         self.trigger_about_to_finish()
