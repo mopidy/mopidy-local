@@ -40,9 +40,9 @@ class Extension(ext.Extension):
         registry.add("http:app", {"name": self.ext_name, "factory": self.webapp})
 
     def get_command(self):
-        from .commands import LocalCommand  # noqa: PLC0415
+        from .commands import app  # noqa: PLC0415
 
-        return LocalCommand()
+        return app
 
     def webapp(self, config, core):  # noqa: ARG002
         from .web import ImageHandler, IndexHandler  # noqa: PLC0415
