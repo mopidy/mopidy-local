@@ -114,7 +114,7 @@ ignore = [
 
 
 [tool.setuptools.package-data]
-"*" = ["*.conf"]
+"*" = ["*.conf", "www/*", "sql/*"]
 
 
 [tool.setuptools_scm]
