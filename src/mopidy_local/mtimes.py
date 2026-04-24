@@ -8,7 +8,7 @@ from mopidy import exceptions
 
 class FindError(exceptions.MopidyException):
     def __init__(self, message, errno=None):
-        super().__init__(message, errno)
+        super().__init__(message)
         self.errno = errno
 
 

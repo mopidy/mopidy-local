@@ -23,7 +23,7 @@ def test_find_error_is_a_mopidy_exception():
 def test_find_error_can_store_an_errno():
     exc = mtimes.FindError("msg", errno=1234)
 
-    assert exc.message == "msg"
+    assert str(exc) == "msg"
     assert exc.errno == 1234
 
 
