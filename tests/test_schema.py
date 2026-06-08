@@ -1,6 +1,5 @@
 import sqlite3
 import unittest
-from uuid import UUID
 
 from mopidy.models import Album, Artist, ModelType, Ref, Track
 
@@ -14,7 +13,7 @@ class SchemaTest(unittest.TestCase):
         Artist(
             uri="local:artist:0",
             name="artist #0",
-            musicbrainz_id=UUID("b5e8922b-5dee-44f2-85e1-7e78b69a7e1d"),
+            musicbrainz_id="b5e8922b-5dee-44f2-85e1-7e78b69a7e1d",
         ),
         Artist(uri="local:artist:1", name="artist #1"),
     ]
@@ -22,7 +21,7 @@ class SchemaTest(unittest.TestCase):
         Album(
             uri="local:album:0",
             name="album #0",
-            musicbrainz_id=UUID("13b290bc-465d-4cb8-85df-9c18c0614a66"),
+            musicbrainz_id="13b290bc-465d-4cb8-85df-9c18c0614a66",
         ),
         Album(uri="local:album:1", name="album #1", artists=[artists[0]]),
         Album(uri="local:album:2", name="album #2", artists=[artists[1]]),
@@ -58,7 +57,7 @@ class SchemaTest(unittest.TestCase):
             album=albums[2],
             composers=[artists[0]],
             performers=[artists[0]],
-            musicbrainz_id=UUID("e6cea07e-9d2d-4cd2-912f-94fd11c99763"),
+            musicbrainz_id="e6cea07e-9d2d-4cd2-912f-94fd11c99763",
         ),
     ]
 
