@@ -199,7 +199,7 @@ def load(c):
 
 
 def tracks(c):
-    return list(map(_track, c.execute("SELECT * FROM tracks")))
+    return _tracks(c.execute("SELECT * FROM tracks"))
 
 
 def list_distinct(c, field, query=()):
@@ -246,7 +246,7 @@ def dates(c, format="%Y-%m-%d"):  # noqa: A002
 
 
 def lookup(c, type, uri):  # noqa: A002
-    return list(map(_track, c.execute(_LOOKUP_QUERIES[type], [uri])))
+    return _tracks(c.execute(_LOOKUP_QUERIES[type], [uri]))
 
 
 def exists(c, uri):
@@ -285,7 +285,7 @@ def search_tracks(c, query, limit, offset, exact, filters=()):  # noqa: PLR0913,
     params += [limit, offset]
     logger.debug("SQLite search query %r: %s", params, sql)
     rows = c.execute(sql, params)
-    return list(map(_track, rows))
+    return _tracks(rows)
 
 
 def get_image_uris(c):
@@ -475,6 +475,28 @@ def _fulltext_query(query):
             raise LookupError(msg)
         params.append(value)
     return (" INTERSECT ".join(terms), params)
+
+
+def _tracks(rows):
+    """Convert rows to tracks, skipping any row we can't convert.
+
+    Databases created by older versions of Mopidy predate model validation, and
+    can contain values we no longer accept, e.g. dates in other formats than
+    `YYYY`, `YYYY-MM`, or `YYYY-MM-DD`.
+
+    Such rows are skipped rather than repaired on the fly. A skipped track is
+    not part of the library as far as `mopidy local scan` is concerned, so the
+    file is rescanned and its row replaced with valid data. Repairing the row
+    here would instead hide the bad data from the scan, leaving it in the
+    database forever.
+    """
+    tracks = []
+    for row in rows:
+        try:
+            tracks.append(_track(row))
+        except ValueError as error:
+            logger.warning("Skipping %s with invalid data: %s", row.uri, error)
+    return tracks
 
 
 def _track(row):

@@ -305,3 +305,49 @@ class SchemaTest(unittest.TestCase):
         schema.cleanup(c)
         assert len(c.execute("SELECT * FROM album").fetchall()) == 0
         assert len(c.execute("SELECT * FROM artist").fetchall()) == 0
+
+    def test_tracks_skips_track_with_invalid_date(self):
+        # Databases created before we validated our models can hold dates in
+        # any format. See mopidy-local#92.
+        self.connection.execute(
+            "UPDATE track SET date = '31-12-2006' WHERE uri = ?",
+            [self.tracks[0].uri],
+        )
+
+        tracks = schema.tracks(self.connection)
+
+        assert len(tracks) == len(self.tracks) - 1
+        assert self.tracks[0].uri not in [track.uri for track in tracks]
+
+    def test_tracks_skips_track_with_invalid_album_date(self):
+        self.connection.execute(
+            "UPDATE album SET date = '12-1996' WHERE uri = ?",
+            [self.albums[0].uri],
+        )
+
+        tracks = schema.tracks(self.connection)
+
+        # tracks[2] is the only track on albums[0].
+        assert len(tracks) == len(self.tracks) - 1
+        assert self.tracks[2].uri not in [track.uri for track in tracks]
+
+    def test_lookup_skips_track_with_invalid_date(self):
+        self.connection.execute(
+            "UPDATE track SET date = '31-12-2006' WHERE uri = ?",
+            [self.tracks[0].uri],
+        )
+
+        with self.connection as c:
+            assert schema.lookup(c, ModelType.TRACK, self.tracks[0].uri) == []
+
+    def test_search_skips_track_with_invalid_date(self):
+        self.connection.execute(
+            "UPDATE track SET date = '31-12-2006' WHERE uri = ?",
+            [self.tracks[0].uri],
+        )
+
+        with self.connection as c:
+            result = schema.search_tracks(c, [], 10, 0, exact=False)
+
+        assert len(result) == len(self.tracks) - 1
+        assert self.tracks[0].uri not in [track.uri for track in result]
