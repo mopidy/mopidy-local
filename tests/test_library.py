@@ -6,7 +6,7 @@ from unittest import mock
 
 import pykka
 from mopidy import backend, core
-from mopidy.models import SearchResult, Track
+from mopidy.models import Album, SearchResult, Track
 
 from mopidy_local import actor, storage, translator
 from tests import dummy_audio, path_to_data_dir
@@ -91,6 +91,18 @@ class LocalLibraryProviderTest(unittest.TestCase):
         assert empty == lib.search(uris=["local:directory"]).get()
         assert empty == lib.search(uris=["local:directory:"]).get()
         assert empty == lib.search(uris=["foobar:"]).get()
+
+    def test_browse_directory_overrides_album_already_in_query(self):
+        album = Album(uri="local:album:0", name="album #0")
+        self.storage.begin()
+        self.storage.add(Track(uri="local:track:0", name="track #0", album=album))
+        self.storage.close()
+
+        refs = self.library.browse("local:directory?album=local:album:0").get()
+
+        assert [ref.uri for ref in refs] == [
+            "local:directory?album=local:album:0&type=track",
+        ]
 
     @mock.patch("mopidy_local.schema.list_distinct")
     def test_distinct_field_track_uses_track_name(self, distinct_mock):

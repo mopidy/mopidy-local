@@ -1,6 +1,7 @@
 import logging
 import operator
 import sqlite3
+from collections.abc import Mapping
 
 import uritools
 from mopidy import backend, models
@@ -12,18 +13,20 @@ from . import Extension, schema
 logger = logging.getLogger(__name__)
 
 
+def directory_uri(base: Mapping[str, object] | None = None, /, **query: object) -> Uri:
+    # Like `dict()`, keywords override keys of the same name in `base`.
+    fields = {**(base or {}), **query}
+    # `uricompose()` accepts a query as an iterable of key/value pairs, which,
+    # unlike a mapping, doesn't require an invariant `str | bytes` key type.
+    return Uri(uritools.uricompose("local", None, "directory", list(fields.items())))
+
+
 def date_ref(date):
-    return Ref.directory(
-        uri=uritools.uricompose("local", None, "directory", {"date": date}),
-        name=date,
-    )
+    return Ref.directory(uri=directory_uri(date=date), name=date)
 
 
 def genre_ref(genre):
-    return Ref.directory(
-        uri=uritools.uricompose("local", None, "directory", {"genre": genre}),
-        name=genre,
-    )
+    return Ref.directory(uri=directory_uri(genre=genre), name=genre)
 
 
 class LocalLibraryProvider(backend.LibraryProvider):
@@ -38,7 +41,7 @@ class LocalLibraryProvider(backend.LibraryProvider):
         self._directories = []
         for line in ext_config["directories"]:
             name, uri = line.rsplit(None, 1)
-            ref = Ref.directory(uri=uri, name=name)
+            ref = Ref.directory(uri=Uri(uri), name=name)
             self._directories.append(ref)
         self._dbpath = self._data_dir / "library.db"
         self._connection = None
@@ -95,7 +98,7 @@ class LocalLibraryProvider(backend.LibraryProvider):
         filters = [f for uri in uris or [] for f in self._filters(uri) if f]
         with self._connect() as c:
             tracks = schema.search_tracks(c, q, limit, offset, exact, filters)
-        uri = uritools.uricompose("local", path="search", query=q)
+        uri = Uri(uritools.uricompose("local", path="search", query=q))
         return SearchResult(uri=uri, tracks=tuple(tracks))
 
     def get_images(self, uris):
@@ -138,11 +141,10 @@ class LocalLibraryProvider(backend.LibraryProvider):
             if ref.type == ModelType.ALBUM and ref.uri not in album_uris:
                 albums.append(
                     Ref.directory(
-                        uri=uritools.uricompose(
-                            "local",
-                            None,
-                            "directory",
-                            dict(type=ModelType.TRACK, album=ref.uri, artist=uri),  # noqa: C408
+                        uri=directory_uri(
+                            type=ModelType.TRACK,
+                            album=ref.uri,
+                            artist=uri,
                         ),
                         name=ref.name,
                     ),
@@ -161,7 +163,7 @@ class LocalLibraryProvider(backend.LibraryProvider):
 
         # TODO: handle these in schema (generically)?
         if type_ == "date":
-            format_ = query.get("format", "%Y-%m-%d")
+            format_ = query.get("format") or "%Y-%m-%d"
             return list(map(date_ref, schema.dates(self._connect(), format=format_)))
         if type_ == "genre":
             return list(map(genre_ref, schema.list_distinct(self._connect(), "genre")))
@@ -181,24 +183,14 @@ class LocalLibraryProvider(backend.LibraryProvider):
             elif ref.type == ModelType.ALBUM:
                 refs.append(
                     Ref.directory(
-                        uri=uritools.uricompose(
-                            "local",
-                            None,
-                            "directory",
-                            dict(query, type=ModelType.TRACK, album=ref.uri),
-                        ),
+                        uri=directory_uri(query, type=ModelType.TRACK, album=ref.uri),
                         name=ref.name,
                     ),
                 )
             elif ref.type == ModelType.ARTIST:
                 refs.append(
                     Ref.directory(
-                        uri=uritools.uricompose(
-                            "local",
-                            None,
-                            "directory",
-                            dict(query, **{role: ref.uri}),
-                        ),
+                        uri=directory_uri({**query, role or "artist": ref.uri}),
                         name=ref.name,
                     ),
                 )
