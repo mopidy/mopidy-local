@@ -1,7 +1,15 @@
+from __future__ import annotations
+
 import pathlib
 from importlib.metadata import version
+from typing import TYPE_CHECKING, Any
 
 from mopidy import config, ext
+
+if TYPE_CHECKING:
+    import cyclopts
+    from mopidy.config import Config
+    from mopidy.core import CoreProxy
 
 __version__ = version("Mopidy-Local")
 
@@ -11,10 +19,10 @@ class Extension(ext.Extension):
     ext_name = "local"
     version = __version__
 
-    def get_default_config(self):
+    def get_default_config(self) -> str:
         return config.read(pathlib.Path(__file__).parent / "ext.conf")
 
-    def get_config_schema(self):
+    def get_config_schema(self) -> config.ConfigSchema:
         schema = super().get_config_schema()
         schema["library"] = config.Deprecated()
         schema["max_search_results"] = config.Integer(minimum=0)
@@ -33,18 +41,18 @@ class Extension(ext.Extension):
         schema["album_art_files"] = config.List(optional=True)
         return schema
 
-    def setup(self, registry):
+    def setup(self, registry) -> None:
         from .actor import LocalBackend  # noqa: PLC0415
 
         registry.add("backend", LocalBackend)
         registry.add("http:app", {"name": self.ext_name, "factory": self.webapp})
 
-    def get_command(self):
+    def get_command(self) -> cyclopts.App:
         from .commands import app  # noqa: PLC0415
 
         return app
 
-    def webapp(self, config, core):  # noqa: ARG002
+    def webapp(self, config: Config, core: CoreProxy) -> list[Any]:  # noqa: ARG002
         from .web import ImageHandler, IndexHandler  # noqa: PLC0415
 
         image_dir = self.get_image_dir(config)
@@ -55,12 +63,12 @@ class Extension(ext.Extension):
 
     # TODO: Add *paths to Extension.get_data_dir()?
     @classmethod
-    def get_data_subdir(cls, config, *paths):
+    def get_data_subdir(cls, config: Config, *paths: str) -> pathlib.Path:
         data_dir = cls.get_data_dir(config)
         dir_path = data_dir.joinpath(*paths)
         dir_path.mkdir(parents=True, exist_ok=True)
         return dir_path
 
     @classmethod
-    def get_image_dir(cls, config):
+    def get_image_dir(cls, config: Config) -> pathlib.Path:
         return cls.get_data_subdir(config, "images")

@@ -80,6 +80,7 @@ ignore = [
     "ANN",    # flake8-annotations  # TODO
     "ANN401", # any-type
     "BLE001", # blind-except  # TODO
+    "CPY",    # flake8-copyright
     "D",      # pydocstyle
     "FIX001", # line-contains-fixme
     "FIX002", # line-contains-todo
