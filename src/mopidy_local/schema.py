@@ -264,7 +264,7 @@ def browse(c, type=None, order=("type", "name COLLATE NOCASE"), **kwargs):  # no
     return [Ref(**row) for row in c.execute(sql, params)]
 
 
-def search_tracks(c, query, limit, offset, exact, filters=()):  # noqa: PLR0913
+def search_tracks(c, query, limit, offset, exact, filters=()):  # noqa: PLR0913, PLR0917
     if not query:
         sql, params = ("SELECT * FROM tracks WHERE 1", [])
     elif exact:

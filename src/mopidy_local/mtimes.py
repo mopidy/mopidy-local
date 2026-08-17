@@ -58,7 +58,7 @@ def _find(root, *, thread_count=10, relative=False, follow=False):
     return results, errors
 
 
-def _find_worker(root, follow, done, work, results, errors):  # noqa: PLR0913
+def _find_worker(root, follow, done, work, results, errors):  # noqa: PLR0913, PLR0917
     """Worker thread for collecting stat() results.
 
     :param Path root: directory to make results relative to
