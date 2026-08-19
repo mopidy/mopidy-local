@@ -7,6 +7,8 @@ import cyclopts
 from mopidy.audio.scan import Scanner
 from mopidy.audio.tags import convert_tags_to_track
 from mopidy.config import Config
+from mopidy.exceptions import ScannerError
+from mopidy.models import Track
 
 from mopidy_local import mtimes, storage, translator
 
@@ -249,12 +251,23 @@ def _scan_metadata(  # noqa: PLR0913
                     media_dir,
                 )
                 mtime = file_mtimes.get(absolute_path)
-                track = convert_tags_to_track(
-                    result.tags,
-                    uri=local_uri,
-                    length=result.duration,
-                    last_modified=mtime,
-                )
+                try:
+                    track = convert_tags_to_track(
+                        result.tags,
+                        uri=local_uri,
+                        length=result.duration,
+                        last_modified=mtime,
+                    )
+                except ScannerError as error:
+                    # Index the file without its tags rather than hiding it
+                    # from the library entirely.
+                    logger.warning(f"Ignoring invalid tags on {file_uri}: {error}")
+                    track = Track(
+                        uri=local_uri,
+                        name=absolute_path.name,
+                        length=result.duration,
+                        last_modified=mtime,
+                    )
                 library.add(track, result.tags, result.duration)
                 logger.debug(f"Added {track.uri}")
         except Exception as error:
