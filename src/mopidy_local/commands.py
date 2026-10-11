@@ -98,6 +98,8 @@ def scan(
         timeout=config["local"]["scan_timeout"],
         flush_threshold=config["local"]["scan_flush_threshold"],
         tracks_limit=tracks_limit,
+        lax_album_match=config["local"]["lax_album_match"],
+        provide_default_album_artists=config["local"]["provide_default_album_artists"],
     )
 
     library.close()
@@ -218,6 +220,8 @@ def _scan_metadata(  # noqa: PLR0913
     timeout,
     flush_threshold,
     tracks_limit,
+    lax_album_match,
+    provide_default_album_artists,
 ):
     logger.info("Scanning...")
 
@@ -268,7 +272,13 @@ def _scan_metadata(  # noqa: PLR0913
                         length=result.duration,
                         last_modified=mtime,
                     )
-                library.add(track, result.tags, result.duration)
+                library.add(
+                    track,
+                    lax_album_match=lax_album_match,
+                    provide_default_album_artists=provide_default_album_artists,
+                    tags=result.tags,
+                    duration=result.duration,
+                )
                 logger.debug(f"Added {track.uri}")
         except Exception as error:
             logger.warning(f"Failed scanning {file_uri}: {error}")

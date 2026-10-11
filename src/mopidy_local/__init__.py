@@ -39,6 +39,8 @@ class Extension(ext.Extension):
         schema["timeout"] = config.Integer(optional=True, minimum=1)
         schema["use_artist_sortname"] = config.Boolean()
         schema["album_art_files"] = config.List(optional=True)
+        schema["lax_album_match"] = config.Boolean(optional=True)
+        schema["provide_default_album_artists"] = config.Boolean(optional=True)
         return schema
 
     def setup(self, registry) -> None:
