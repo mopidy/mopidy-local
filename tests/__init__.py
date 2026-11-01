@@ -1,6 +1,4 @@
-import functools
 import pathlib
-import warnings
 
 from mopidy.types import Uri
 
@@ -12,17 +10,6 @@ def path_to_data_dir(name) -> pathlib.Path:
 
 def generate_song(i) -> Uri:
     return Uri(f"local:track:song{i}.wav")
-
-
-def populate_tracklist(func):
-    @functools.wraps(func)
-    def wrapper(self):
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore", DeprecationWarning)
-            self.tl_tracks = self.core.tracklist.add(self.tracks)
-        return func(self)
-
-    return wrapper
 
 
 class IsA:  # noqa: PLW1641
