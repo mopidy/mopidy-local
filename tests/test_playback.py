@@ -1,14 +1,13 @@
 from __future__ import annotations
 
 import time
-import warnings
 from typing import TYPE_CHECKING
 from unittest import mock
 
 import pytest
 from mopidy.core import PlaybackController
 from mopidy.models import TlTrack, Track
-from mopidy.types import DurationMs, PlaybackState, Uri
+from mopidy.types import DurationMs, PlaybackState
 
 from tests import generate_song
 
@@ -20,6 +19,8 @@ if TYPE_CHECKING:
         PlaybackControllerProxy,
         TracklistControllerProxy,
     )
+
+    from tests import AddToTracklist
 
 # TODO: Test 'playlist repeat', e.g. repeat=1,single=0
 
@@ -34,15 +35,8 @@ assert TRACKS[0].length >= 2000, "First song needs to be at least 2000 milisecon
 
 
 @pytest.fixture
-def tl_tracks(tracklist: TracklistControllerProxy) -> list[TlTrack]:
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore", DeprecationWarning)
-        return tracklist.add(TRACKS).get()
-
-
-def add_track(tracklist: TracklistControllerProxy, uri: Uri):
-    track = Track(uri=uri, length=DurationMs(4464))
-    tracklist.add([track])
+def tl_tracks(add_to_tracklist: AddToTracklist) -> list[TlTrack]:
+    return add_to_tracklist(*TRACKS)
 
 
 def trigger_about_to_finish(audio: AudioProxy, playback: PlaybackControllerProxy):
@@ -111,37 +105,36 @@ def test_uri_scheme(core: CoreProxy):
     assert "local" in core.get_uri_schemes().get()
 
 
-def test_play_mp3(
-    playback: PlaybackControllerProxy, tracklist: TracklistControllerProxy
-):
-    add_track(tracklist, "local:track:blank.mp3")
+def test_play_mp3(playback: PlaybackControllerProxy, add_to_tracklist: AddToTracklist):
+    add_to_tracklist(Track(uri="local:track:blank.mp3", length=DurationMs(4464)))
     playback.play().get()
     assert_state_is(playback, PlaybackState.PLAYING)
 
 
-def test_play_ogg(
-    playback: PlaybackControllerProxy, tracklist: TracklistControllerProxy
-):
-    add_track(tracklist, "local:track:blank.ogg")
+def test_play_ogg(playback: PlaybackControllerProxy, add_to_tracklist: AddToTracklist):
+    add_to_tracklist(Track(uri="local:track:blank.ogg", length=DurationMs(4464)))
     playback.play().get()
     assert_state_is(playback, PlaybackState.PLAYING)
 
 
-def test_play_flac(
-    playback: PlaybackControllerProxy, tracklist: TracklistControllerProxy
-):
-    add_track(tracklist, "local:track:blank.flac")
+def test_play_flac(playback: PlaybackControllerProxy, add_to_tracklist: AddToTracklist):
+    add_to_tracklist(Track(uri="local:track:blank.flac", length=DurationMs(4464)))
     playback.play().get()
     assert_state_is(playback, PlaybackState.PLAYING)
 
 
 def test_play_uri_with_non_ascii_bytes(
-    playback: PlaybackControllerProxy, tracklist: TracklistControllerProxy
+    playback: PlaybackControllerProxy, add_to_tracklist: AddToTracklist
 ):
     # Regression test: If trying to do .split(u':') on a bytestring, the
     # string will be decoded from ASCII to Unicode, which will crash on
     # non-ASCII strings, like the bytestring the following URI decodes to.
-    add_track(tracklist, "local:track:12%20Doin%E2%80%99%20It%20Right.flac")
+    add_to_tracklist(
+        Track(
+            uri="local:track:12%20Doin%E2%80%99%20It%20Right.flac",
+            length=DurationMs(4464),
+        )
+    )
     playback.play().get()
     assert_state_is(playback, PlaybackState.PLAYING)
 
@@ -504,6 +497,7 @@ def test_next_track_with_random_after_append_playlist(
     shuffle_mock: mock.Mock,
     tracklist: TracklistControllerProxy,
     tl_tracks: list[TlTrack],
+    add_to_tracklist: AddToTracklist,
 ):
     shuffle_mock.side_effect = lambda tracks: tracks.reverse()
 
@@ -516,7 +510,7 @@ def test_next_track_with_random_after_append_playlist(
     # shuffle.
     assert next_tlid == expected_tl_track.tlid
 
-    tracklist.add(TRACKS[:1])
+    add_to_tracklist(*TRACKS[:1])
 
     old_next_tlid = next_tlid
     expected_tl_track = tracklist.get_tl_tracks().get()[-1]
@@ -722,7 +716,9 @@ def test_end_of_track_with_random(
 @mock.patch("random.shuffle")
 @pytest.mark.usefixtures("tl_tracks")
 def test_end_of_track_track_with_random_after_append_playlist(
-    shuffle_mock: mock.Mock, tracklist: TracklistControllerProxy
+    shuffle_mock: mock.Mock,
+    tracklist: TracklistControllerProxy,
+    add_to_tracklist: AddToTracklist,
 ):
     shuffle_mock.side_effect = lambda tracks: tracks.reverse()
 
@@ -735,7 +731,7 @@ def test_end_of_track_track_with_random_after_append_playlist(
     # shuffle.
     assert eot_tlid == expected_tl_track.tlid
 
-    tracklist.add(TRACKS[:1])
+    add_to_tracklist(*TRACKS[:1])
 
     old_eot_tlid = eot_tlid
     expected_tl_track = tracklist.get_tl_tracks().get()[-1]
@@ -862,40 +858,40 @@ def test_tracklist_position_at_end_of_playlist(
 
 @mock.patch.object(PlaybackController, "_on_tracklist_change")
 def test_on_tracklist_change_gets_called(
-    change_mock: mock.Mock, tracklist: TracklistControllerProxy
+    change_mock: mock.Mock, add_to_tracklist: AddToTracklist
 ):
-    tracklist.add([Track(uri="a")]).get()
+    add_to_tracklist(Track(uri="local:track:a"))
     change_mock.assert_called_once_with()
 
 
 @pytest.mark.usefixtures("tl_tracks")
 def test_on_tracklist_change_when_playing(
-    playback: PlaybackControllerProxy, tracklist: TracklistControllerProxy
+    playback: PlaybackControllerProxy, add_to_tracklist: AddToTracklist
 ):
     playback.play().get()
     current_track = playback.get_current_track().get()
-    tracklist.add([TRACKS[2]])
+    add_to_tracklist(TRACKS[2])
     assert_state_is(playback, PlaybackState.PLAYING)
     assert_current_track_is(playback, current_track)
 
 
 @pytest.mark.usefixtures("tl_tracks")
 def test_on_tracklist_change_when_stopped(
-    playback: PlaybackControllerProxy, tracklist: TracklistControllerProxy
+    playback: PlaybackControllerProxy, add_to_tracklist: AddToTracklist
 ):
-    tracklist.add([TRACKS[2]])
+    add_to_tracklist(TRACKS[2])
     assert_state_is(playback, PlaybackState.STOPPED)
     assert_current_track_is(playback, None)
 
 
 @pytest.mark.usefixtures("tl_tracks")
 def test_on_tracklist_change_when_paused(
-    playback: PlaybackControllerProxy, tracklist: TracklistControllerProxy
+    playback: PlaybackControllerProxy, add_to_tracklist: AddToTracklist
 ):
     playback.play().get()
     playback.pause()
     current_track = playback.get_current_track().get()
-    tracklist.add([TRACKS[2]])
+    add_to_tracklist(TRACKS[2])
     assert_state_is(playback, PlaybackState.PAUSED)
     assert_current_track_is(playback, current_track)
 
